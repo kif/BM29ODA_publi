@@ -42,6 +42,7 @@
 \author[b]{Adam}{Round}
 \author[a]{Petra}{Pernot}
 \author[a]{Martha}{Brennich}
+\author[a]{Alejandro}{De Maria Antolinos}
 
 \aff[a]{ESRF Grenoble TODO \country{France}}
 \aff[b]{EMBL Grenoble TODO \country{France}}
@@ -60,7 +61,7 @@
      % Use the \keyword macro for each word or phrase, e.g. 
      % \keyword{X-ray diffraction}\keyword{muscle}
 
-\keyword{Online data-analysis, BioSaxs, Azimuythal intgration }
+\keyword{Online data-analysis, solution scattering, protein}
 
      % PDB and NDB reference codes for structures referenced in the article and
      % deposited with the Protein Data Bank and Nucleic Acids Database (Acta
@@ -73,10 +74,11 @@
 \maketitle                        % DO NOT DELETE THIS LINE
 
 \begin{synopsis}
-Supply a synopsis of the paper for inclusion in the Table of Contents.
+Low-latency data reduction and real-time feed back to the users 
 \end{synopsis}
 
 \begin{abstract}
+Abstract+Introduction (with motivation) -> Adam
 Saxs applies to proteins blabla
 high throughput blabla
 need automatic data treatement blabla
@@ -95,85 +97,135 @@ Adam ?
 Text text text text text text text text text text text text text text
 text text text text text text text.
 
-\section{Introduction}
-
-Adam ?
-Text text text text text text text text text text text text text text
-text text text text text text text.
-
-\subsection{Title}
-
-Text text text text text text text text text text text text text text
-text text text text text text text.
-
-\subsubsection{Title}
-
-Text text text text text text text text text text text text text text
-text text text text text text text.
 
 
-     % Appendices appear after the main body of the text. They are prefixed by
-     % a single \appendix declaration, and are then structured just like the
-     % body text.
+\section{Online data analysis}
 
-\appendix
-\section{Appendix title}
+Online data analysis is needed on highly automated beamlines where the
+acquisition of a sample lasts for less than a second and there is virtually no
+dead-time between samples.
 
-Text text text text text text text text text text text text text text
-text text text text text text text.
+\subsection{Data analysis server}
 
-\subsection{Title}
 
-Text text text text text text text text text text text text text text
-text text text text text text text.
+\section{Data Acquisition using the sample changer}
 
-\subsubsection{Title}
+The sample changer allows the 
+
+
+\subsection{Azimuthal integration pipeline}
+
+This pipeline is triggered 
+
+Based on FabIO\cite{fabio} for image reading and pyFAI\cite{pyFAI} for azimuthal
+integraton \ldots
+
+\subsection{curve merging}
+
+
+\subsection{\textem{ab-initio} reconstruction pipeline}
 
 Text text text text text text text text text text text text text text
 text text text text text text text.
 
+\section{HPLC mode}
 
-     %-------------------------------------------------------------------------
-     % The back matter of the paper - acknowledgements and references
-     %-------------------------------------------------------------------------
+A couple of specific pipeline have been developed more recently when the
+sample-changer is replaced by a steric exclusion column based  chromatographic
+setup (hereafter named HPLC-mode).
+In HPLC-mode the eluate of the column is directly connected to the capillary
+and the buffer flows though continuously. 2D-diffraction frames are continuously
+taken at a frequency around 1 Hz (the maximum achievable speed with the current
+system is 30 Hz for the detector and around 10 Hz for the data-analysis
+pipeline).
+\subsection{HPLC frame}
 
-     % Acknowledgements come after the appendices
+This pipeline, triggered for every-frame, is similar to the azimuthal
+integration pipeline used in sample-changer-mode as it performs the regrouping
+of the image and provides the 1D curve.
+In addition, this plugin is in charge of defining the reference buffer by
+comparing any frame to the first one, assuming the eluate of the first frame
+contains pure buffer (using datcmp from the ATSAS package).
+Very similar frames (based on a threshold) are merged to the first one to define
+the averaged buffer of the experiment.
+
+Any frame very dissimilar (there is a second threshold) to the first/buffer
+(check?) is considered as a sample frame hence the buffer signal is subtracted
+and Guinier analysis is performed, providing a radius of giration and an
+intensity of scattering at q=0.
+ 
+\subsection{HPLC flush}
+When the HPLC experiment ends (or is aborted) a specific plugin is launched to
+finish the processing of the experiment:
+* Merge all 1D diffraction patterns into a 2D dataset containing scattering
+intensity in function of scattering vector and time.
+* locate peaks, corresponding to the maximum of I0 in Guinier analysis
+* merge curves from the same sample to enhance the statistic. All eluate curves
+located around a local maxima of I0 with similar Rg are considered
+containing the same compound and hence merged togeather.
+
+All those results are saved into a single HDF5 which is uploaded to the ISPyBB
+database at the end of the processing.
+
+A figure describing the results would be welcome ! 
+
+\section{Offline data analysis}
+Describes reprocess mode &
+explains why cannot be distributed (licensing, difficulty to install)
+ 
+\section{Hardware used}
+Two computers with GPU computing capabilities (Nvidia Quadro 4000) are dedicated
+for online data analysis on the biosaxs bemline, they are independent and
+feature the same software installation hence providing redondancy (if one
+fails).
+As the \textem{ab initio} reconstruction pipeline lasts of dozens of minutes
+(due to the execution of DAMMIN), it is run on the most powerful computer while 
+the azimuthal integration pipeline, which needs the lowest latency, is run on
+the other computer.
+
+
+
+\section{Conclusion}
+
 
 \ack{Acknowledgements}
+Ricardo Fernandes & Thomas Boeglin: original reprocess 
+Peter Boesecke: original azimuthal integration procedure
+Irakli for the original ab-initio pipeline 
+Al & Dmitry for the atsas package and support 
+Staffan Ohlsson & Matias Guijarro: bliss contact
 
-     % References are at the end of the document, between \begin{references}
-     % and \end{references} tags. Each reference is in a \reference entry.
+\bibliographystyle{iucr}
+\bibliography{biblio}
 
-\begin{references}
-\reference{Author, A. \& Author, B. (1984). \emph{Journal} \textbf{Vol}, 
-first page--last page.}
-\end{references}
+% \reference{Author, A. \& Author, B. (1984). \emph{Journal} \textbf{Vol}, 
+% first page--last page.}
+% \end{references}
+% 
+%      %-------------------------------------------------------------------------
+%      % TABLES AND FIGURES SHOULD BE INSERTED AFTER THE MAIN BODY OF THE TEXT
+%      %-------------------------------------------------------------------------
+% 
+%      % Simple tables should use the tabular environment according to this
+%      % model
+% 
+% \begin{table}
+% \caption{Caption to table}
+% \begin{tabular}{llcr}      % Alignment for each cell: l=left, c=center, r=right
+%  HEADING    & FOR        & EACH       & COLUMN     \\
+% \hline
+%  entry      & entry      & entry      & entry      \\
+%  entry      & entry      & entry      & entry      \\
+%  entry      & entry      & entry      & entry      \\
+% \end{tabular}
+% \end{table}
+% 
+%      % Postscript figures can be included with multiple figure blocks
+% 
+% \begin{figure}
+% \caption{Caption describing figure.}
+% \includegraphics{fig1.ps}
+% \end{figure}
+% 
 
-     %-------------------------------------------------------------------------
-     % TABLES AND FIGURES SHOULD BE INSERTED AFTER THE MAIN BODY OF THE TEXT
-     %-------------------------------------------------------------------------
-
-     % Simple tables should use the tabular environment according to this
-     % model
-
-\begin{table}
-\caption{Caption to table}
-\begin{tabular}{llcr}      % Alignment for each cell: l=left, c=center, r=right
- HEADING    & FOR        & EACH       & COLUMN     \\
-\hline
- entry      & entry      & entry      & entry      \\
- entry      & entry      & entry      & entry      \\
- entry      & entry      & entry      & entry      \\
-\end{tabular}
-\end{table}
-
-     % Postscript figures can be included with multiple figure blocks
-
-\begin{figure}
-\caption{Caption describing figure.}
-\includegraphics{fig1.ps}
-\end{figure}
-
-
-\end{document}                    % DO NOT DELETE THIS LINE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}                
