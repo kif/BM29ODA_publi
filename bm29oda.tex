@@ -38,7 +38,7 @@
      % Use lower-case letters in square brackets to link authors to their
      % affiliations; if there is only one affiliation address, remove the [a].
 
-\cauthor[a]{Jérôme}{Kieffer}{jerome.kieffer@esrf.fr}
+\cauthor[a]{J\'er\^ome}{Kieffer}{jerome.kieffer@esrf.fr}{}
 \author[b]{Adam}{Round}
 \author[a]{Petra}{Pernot}
 \author[a]{Martha}{Brennich}
@@ -105,28 +105,143 @@ Online data analysis is needed on highly automated beamlines where the
 acquisition of a sample lasts for less than a second and there is virtually no
 dead-time between samples.
 
+
+\subsection{experiment control}
+The sequence of acquisition is controled from a graphical interface, BsxCube,
+written in Python/Qt4 \cite{pyqt} which enforces a strong Model-View-Controler
+pattern\cite{mvc} (MVC here after).
+BsxCube is composed of Control-objects (the Model in MVC) and from Bricks (the
+View in MVC) which communicate togeather and with the rest of the beamline
+(detector, motors, sample changer, \ldots) via protocols like 0MQ\cite{zmq} or
+tango\cite{tango} which are the Controler in the MVC pattern.
+
 \subsection{Data analysis server}
 
+Data analysis is triggered automatically by BsxCube via a tango call. 
+The data analysis server is actually a tango device server written in
+PyTango\cite{pytango} which launches EDNA jobs\cite{edna}.  
+
+
+\subsubsection{EDNA} is a plugin-based framwork to build pipeline for
+data-analysis. So the basic idea behind EDNA is to have plugins either responsible for the execution
+of a task or an external process, called \textem{execution plugins} or
+\textem{control plugins} which are in charge of launching and managing other
+plugin (either execution or control plugins), either sequentially or in
+parallel. 
+The number of execution plugins running simultaneouly is limited,
+depending on the processor resources of the computer.
+Any plugin recieves its
+arguments and returns its result using data-structures which can be serialized
+into XML to be able to send them to disk or via the network. 
+
+An EDNA job is basically a top level control plugin which has some additional
+feature to be able to communicate with the outside world, providing its state,
+or its results even after all processing are over, while keeping its memory
+footprint as limited as possible. 
+
+\subsubsection{The tango device server} starts the EDNA
+jobs via the \textem{startJob} command. This command takes as parameter a 
+plugin name and the input data-structure associated to it, and return a job
+identifier the processing requester, here BsxCube.
+This tango device server is hence completely generic and can be used for any
+type of EDNA jobs.
+
+To have the best responsiveness at the tango level, EDNA jobs are not started as
+they arrive but they are just instanciated and queued.  
+Another thread is
+responsible to start them, starting multiple jobs in parallel
+(data-parallelism). The number of jobs and the number of actual execution
+plugins running simultaneously is controlled independently to do the best usage
+of the computing power available within the  single computer.
+
+Once finished, any EDNA job emits a tango-event to announce its success or its
+failure. BsxCube can then retrieve the result of the processing, i.e. the 1D
+integrated scattering curve and display it. 
 
 \section{Data Acquisition using the sample changer}
 
-The sample changer allows the 
+The sample changer allows a very high sample throughput and in this mode there
+is a alternance of buffer and sample diluted in the buffer. 
 
+One can basically distinguish three kind of pipelines which are triggered for
+every frame, for every run and for every sample, so with very different
+eigen-period.
 
 \subsection{Azimuthal integration pipeline}
 
-This pipeline is triggered 
+This pipeline is triggered for every single frame acquired, hence every second
+and needs to have the lowest latency possible to display the integrated curve
+in \textem{real time} into the beamline control graphical interface BsxCube.
+The input data-structure for azimuthal integration contains especially
+information about the geometry of the experiment, the sample, its concentration
+and the transmitted intensity as measured on the beam-stop diode for
+normalization.
+To cope with the requested speed (dozens of Hertz requested), this pipeline
+has been optimized and simplified to the maximum. 
+It relies on FabIO\cite{fabio} for image reading (from NFS mounted disks) and
+pyFAI\cite{pyFAI} for azimuthal integration. 
+The detector being a pixel detector (Pilatus 1M from Dectris), the error can be
+assumed to be Poissonian and is integrated as such. 
+On the BioSaxs beamline at ESRF, the azimuthal integration calculation is
+performed on a dedicated graphics card using OpenCL, offloading this processing from CPU to
+GPU, hence leaving resources to other pipelines. 
+Subsequent normalization are
+performed directly using numpy\cite{numpy}.
+The result is saved into a 3-column ASCII file suitable for further processing
+using the ATSAS tools\cite{atsas} and sent back to BsxCube for live display. 
 
-Based on FabIO\cite{fabio} for image reading and pyFAI\cite{pyFAI} for azimuthal
-integraton \ldots
+\subsection{Curve merging}
+Data acquisition is usually performed in runs and consists in a dozen of frames
+of the same sample to be able to evaluate the radiation damage effects.
+This pipeline, called \textem{smartMerge}, is triggered at the end of each run
+and is responsible for evaluating the similarity of different scattering
+patters, using the \textem{datcmp} tool from ATSAS and merging all frames
+similar to the first and propagate the associated metadata. All curve comparison
+can be performed in parallel on modern multicore computer.
 
-\subsection{curve merging}
+Subsequently, the \textem{smartMerge} checks for the buffer-sample-buffer
+sequence and performs the averaging of the buffers and the subtraction from the
+sample data, providing the so called \textem{subtracted curve} containing only
+the scattering from the macromolecule.
 
+Finally this \textem{subtracted curve} is analysed using the so called
+\textem{saxsAnalysis} plugin which performs  subsequently Guinier region fitting
+using \textem{autorg}, Fourier transform using \textem{datgnom} to obtain
+$\rho(r)$ and Porod volume assessement using \textem{datprorod} (those tools
+coming from the ATSAS package).
+All those information are then directly returned to BsxCube to inform the user
+of the success of the experiment and logged into the ISPyBB
+database\cite{ispybb} where they can be accessed via an web interface and 
+subsequently re-use.
 
-\subsection{\textem{ab-initio} reconstruction pipeline}
+\subsection{Ab initio reconstruction pipeline}
 
-Text text text text text text text text text text text text text text
-text text text text text text text.
+This pipeline is in charge of recontructing the three dimentionnal model based
+of the \textem{subtracted curve} and is inspired from a preliminary work
+performed at the Diamond Light Source.
+It runs multiple instances of \textem{dammif} in parallel (16 by default) to get
+multiple models a PDB files. 
+After a first
+round of outlier rejection based on the goodness of fit (Rf) and the
+$sqrt{\chi}$  where the threshold is the mean plus a couple of standard
+deviation, only $N$ valid models remains. 
+Figure \ref{r} shows the plot which is generated to
+explain to the user why certain models are discareded.
+
+All $N$ remaining models are superimposed two by two using
+\textem{supcomb}\cite{supcomb}, launching $N*(N-1)/2$ processes in parallel
+thanks to the EDNA framework.
+The table containing the normalized spatial discrepancy (NSD) is then generated
+(see figure \ref{nsd}), explaining which model is the nearest from all other
+valid models. This model is called the reference model amd all other valid
+models are re-oriented and aligned on the reference one.
+
+All valid models are merged using \textem{damaver}\cite{damaver} and
+\textem{damfilt} and finally reprocessed using \textem{damin}\cite{damin}.
+This last step is pretty slow an lasts usually for dozens of minutes and is
+aborted after half an hour by EDNA as it often runs-away. All results are
+uploaded to the ISPyBb database where a visualizer is 
+
 
 \section{HPLC mode}
 
@@ -135,9 +250,9 @@ sample-changer is replaced by a steric exclusion column based  chromatographic
 setup (hereafter named HPLC-mode).
 In HPLC-mode the eluate of the column is directly connected to the capillary
 and the buffer flows though continuously. 2D-diffraction frames are continuously
-taken at a frequency around 1 Hz (the maximum achievable speed with the current
-system is 30 Hz for the detector and around 10 Hz for the data-analysis
-pipeline).
+taken at a frequency around 1 Hertz (the maximum achievable speed with the
+current system is 30 Hertz for the detector and around 10 Hertz for the
+data-analysis pipeline).
 \subsection{HPLC frame}
 
 This pipeline, triggered for every-frame, is similar to the azimuthal
@@ -165,9 +280,8 @@ located around a local maxima of I0 with similar Rg are considered
 containing the same compound and hence merged togeather.
 
 All those results are saved into a single HDF5 which is uploaded to the ISPyBB
-database at the end of the processing.
-
-A figure describing the results would be welcome ! 
+database at the end of the processing. Figure \ref shows the result of an HPLC
+experiment where X compounds are separated \ldots.
 
 \section{Offline data analysis}
 Describes reprocess mode &
@@ -191,10 +305,10 @@ the other computer.
 \ack{Acknowledgements}
 Ricardo Fernandes & Thomas Boeglin: original reprocess 
 Peter Boesecke: original azimuthal integration procedure
+Olof Svensson: original author of EDNA
 Irakli for the original ab-initio pipeline 
 Al & Dmitry for the atsas package and support 
 Staffan Ohlsson & Matias Guijarro: bliss contact
-
 \bibliographystyle{iucr}
 \bibliography{biblio}
 
