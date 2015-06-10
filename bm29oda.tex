@@ -5,7 +5,7 @@
 % Version 1.6 (28 March 2013)
 %------------------------------------------------------------------------------
 
-\documentclass[preprint]{iucr}              % DO NOT DELETE THIS LINE
+\documentclass[preprint,pdf]{iucr}              % DO NOT DELETE THIS LINE
 
      %-------------------------------------------------------------------------
      % Information about journal to which submitted
@@ -20,6 +20,11 @@
                                   %   J - Journal of Applied Crystallography
                                   %   M - IUCrJ
                                   %   S - Journal of Synchrotron Radiation
+%\usepackage[format=plain,justification=raggedright,singlelinecheck=false,font=small,labelfont=bf,labelsep=space]{caption} 
+\usepackage{lineno}
+\usepackage[pdftex]{graphicx}
+%\usepackage{epstopdf}
+\usepackage{float}
 
 \begin{document}                  % DO NOT DELETE THIS LINE
 
@@ -43,14 +48,15 @@
 \author[a]{Petra}{Pernot}
 \author[a]{Martha}{Brennich}
 \author[a]{Alejandro}{De Maria Antolinos}
-
+\author[c]{Stefanie}{Hutin}
 \aff[a]{ESRF Grenoble TODO \country{France}}
 \aff[b]{EMBL Grenoble TODO \country{France}}
+\aff[c]{UVHCI Grenoble\country{France}}
 
      % Use \shortauthor to indicate an abbreviated author list for use in
      % running heads (you will need to uncomment it).
 
-\shortauthor{Kieffer et all.}
+\shortauthor{Kieffer et al.}
 
      % Use \vita if required to give biographical details (for authors of
      % invited review papers only). Uncomment it.
@@ -78,10 +84,8 @@ Low-latency data reduction and real-time feed back to the users
 \end{synopsis}
 
 \begin{abstract}
-Abstract+Introduction (with motivation) -> Adam
-Saxs applies to proteins blabla
-high throughput blabla
-need automatic data treatement blabla
+High throughput small-Angle X-ray scattering on proteins in solution at synchrotron sources is a commonly used technique in structural biology which relies on highly automated data acquisition. Data reduction and primary analysis for bioSAXS experiments consists of a well-defined series of individual tasks whose automation allows easy first assessment of the quality of collected data.
+This articel describes both the logic and the technical implementation the automated processing pipeline for bioSAXS data implemented at ESRF BM29 using the EDNA framework.
 \end{abstract}
 
 
@@ -92,177 +96,163 @@ need automatic data treatement blabla
      % and \subsubsection's as required.
 
 \section{Introduction}
+The popularity of small-Angle X-ray scattering on proteins and nucleic acids in solution (bioSAXS) to resolve their three-dimensional shape is continously growing \cite{Graewert2013,Hura2009,Reyes2014}. This has not only resulted in the construction of new dedicated beamlines, such as BM29 at ESRF, P12 at EMBL Hamburg or B21 at Diamond Light Source \cite{BM29paper,P12,B21},  but also pushed forward new  developments in both beam line instrumentation and sample handling. Examples for these development are the develoment of dedicated sample changers \cite{SCPaper} or the integration of size exclusion chromatography (SEC) systems into existing beamlines to enable on-line size exclusion\cite{SECPaper2012}.\\
+BM29 is a small angle X-ray scattering beamline dedicated to structural biology \cite{BM29paper}. Currently, the beamline provides two main experimental modes: The use of the bioSAXS sample changer  to collect data on  alternating buffer\/sample\/buffer sequences (sample changer mode)  and an online HPLC system for SEC-SAXS experiments(HPLC mode).
+In both modes, data is typically collected at a rate of on frame per second. In order to estimate the quality and usefulness it is therefore necesary to robustly process data as quuickly and fast as possible.\\
 
-Adam ?
-Text text text text text text text text text text text text text text
-text text text text text text text.
+Available processing tools for SAXS data which support online processing of large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}\ cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and \textit{SASFLOW} \cite{X33P,P12}.  \textit{XRDUA}, \textit{EDNA}
+Our goal was a robust online autoprocessing pipelines for bioSAXS data for data reduction, primary analysis and \textit{ab initio} modeling. The additional needs of FLEXIBILITY and elimination of direct user interaction, lead us to develop a pipelines for both sample changer and HPLC mode in the EDNA framework \cite{edna}. The pipelines use pyFAI for azimutal integration \cite{pyFAI} and tools from the ATSAS package \cite{ATSAS1,ATSAS2} for analysis and modeling. They are smoothly integrated with the beamline control system and the ISPyB database. 
 
-
-
-\section{Online data analysis}
+\section{Technical background}
 
 Online data analysis is needed on highly automated beamlines where the
 acquisition of a sample lasts for less than a second and there is virtually no
-dead-time between samples.
+dead-time between samples. Therefore the processing speed needs to keep up with the data acquistion speed, which at BM29 is typically one frame per second and about three minutes for a set of background and sample measurements in sample changer mode.
 
 
-\subsection{experiment control}
-The sequence of acquisition is controled from a graphical interface, BsxCube,
-written in Python/Qt4 \cite{pyqt} which enforces a strong Model-View-Controler
-pattern\cite{mvc} (MVC here after).
-BsxCube is composed of Control-objects (the Model in MVC) and from Bricks (the
-View in MVC) which communicate togeather and with the rest of the beamline
-(detector, motors, sample changer, \ldots) via protocols like 0MQ\cite{zmq} or
-tango\cite{tango} which are the Controler in the MVC pattern.
+\subsection{Experiment control}
+Data acquisitiona at BM29 is controled via a graphical interface, BsXCube, which is
+written in Python/Qt4 \cite{pyqt} and is based on a strong Model-View-Controler
+pattern (MVC here after)\cite{mvc}.
+BsXCube is composed of Control-objects (the Model in MVC) and Bricks (the
+View in MVC) which communicate with each other and with the beamline components
+(detector, motors, sample changer, data analyis \ldots) via protocols like 0MQ\cite{zmq} or
+tango\cite{tango} which are the Controlers in the MVC pattern.
 
-\subsection{Data analysis server}
+%\subsection{Data analysis server}
 
-Data analysis is triggered automatically by BsxCube via a tango call. 
-The data analysis server is actually a tango device server written in
-PyTango\cite{pytango} which launches EDNA jobs\cite{edna}.  
+%Data analysis is triggered automatically by BsxCube via a tango call. 
+%The data analysis server is actually a tango device server written in
+%PyTango\cite{pytango} which launches EDNA jobs \cite{edna}.  
 
 
-\subsubsection{EDNA} is a plugin-based framwork to build pipeline for
-data-analysis. So the basic idea behind EDNA is to have plugins either responsible for the execution
-of a task or an external process, called \textem{execution plugins} or
-\textem{control plugins} which are in charge of launching and managing other
+\subsection{EDNA} 
+EDNA is a plugin-based framwork to build pipelines for
+data-analysis. The basic idea behind EDNA is to have plugins which are either responsible for the execution
+of a task or an external process, called \textit{execution plugins} or in charge of launching and managing other
 plugin (either execution or control plugins), either sequentially or in
-parallel. 
-The number of execution plugins running simultaneouly is limited,
-depending on the processor resources of the computer.
-Any plugin recieves its
-arguments and returns its result using data-structures which can be serialized
-into XML to be able to send them to disk or via the network. 
+parallel, called \textit{control plugins}.
+The number of execution plugins running simultaneouly is limited by processor resources of the computer.
+Any plugin receives its input arguments and returns its result using data-structures which can be serialized
+into XML for sending them to disk or via the network. \\
 
-An EDNA job is basically a top level control plugin which has some additional
-feature to be able to communicate with the outside world, providing its state,
-or its results even after all processing are over, while keeping its memory
-footprint as limited as possible. 
+An EDNA job is a top level control plugin which ommunicates with the outside world, providing its state,
+or its results even after processing is finished, while keeping its memory footprint as limited as possible. 
 
-\subsubsection{The tango device server} starts the EDNA
-jobs via the \textem{startJob} command. This command takes as parameter a 
-plugin name and the input data-structure associated to it, and return a job
-identifier the processing requester, here BsxCube.
-This tango device server is hence completely generic and can be used for any
-type of EDNA jobs.
+\subsection{The Tango device server} 
+For accepting processing jobs from the outside, e.g. the data acquisition software, EDNA provides a Tango device server interface \cite{tango,pytango}. The device server starts  EDNA
+jobs via the \textit{startJob} command. The parameters of this command are a plugin name and the input data-structure associated to it, and  it returns a job
+identifier the processing requester. This tango device server is hence completely generic and can be used for any type of EDNA jobs.\\
 
-To have the best responsiveness at the tango level, EDNA jobs are not started as
-they arrive but they are just instanciated and queued.  
-Another thread is
-responsible to start them, starting multiple jobs in parallel
+To have the best responsiveness at the tango level, EDNA jobs are not started as they arrive but they are just instanciated and queued.  
+Another thread is responsible for starting them and can start multiple jobs in parallel
 (data-parallelism). The number of jobs and the number of actual execution
 plugins running simultaneously is controlled independently to do the best usage
-of the computing power available within the  single computer.
+of the computing power available within the  single computer.\\
 
-Once finished, any EDNA job emits a tango-event to announce its success or its
-failure. BsxCube can then retrieve the result of the processing, i.e. the 1D
-integrated scattering curve and display it. 
+Once finished, any EDNA job emits a tango-event to announce its success or its failure. Other processes, e.g. the data acquistion software, can then retrieve the result of the processing, e.g. the 1D integrated scattering curve and display it. \\
+This architechture allows us to start processing for indivual files as needed and eliminates the need for a file system notifier running in the background. WHY is this adventagueous?
 
-\section{Data Acquisition using the sample changer}
+\subsection{Hardware, OS, software versions}
+Two computers with GPU computing capabilities (Nvidia Quadro 4000) are dedicated
+for online data analysis on the biosaxs beamline, they are independent and
+feature the same software installation hence providing redondancy (if one fails).
+As the \textit{ab initio} reconstruction pipeline lasts of dozens of minutes
+(due to the execution of DAMMIN), it is run on the more powerful computer while 
+the azimuthal integration pipeline, which needs the lowest latency, is run on
+the other computer. A third computer with a XXX GPU is available for off-line reprocessing and development. The operating system of all three computers is Debian 7. The ATSAS release is ATSAS 2.6.0 for Debian 6.
 
-The sample changer allows a very high sample throughput and in this mode there
-is a alternance of buffer and sample diluted in the buffer. 
+\subsection{Preparation of protein sample and data acquisition}
+ Move this section to Supplement??\\
+All examples of protein data in this publication were acquired on the protein D5TVE from Vaccinia virus (VACV).
+The sequences of D5R is from the VACV strain Copenhagen (GenBank accession number M35027.1). D5R 391-785 was cloned into the pProEx Htb (Invitrogen). D5 was fused to an N-terminal hexahistidine tag that can be cleaved with the TEV (tobacco etch virus) protease. It was expressed in BL21* and purified over a (HIS-select; Sigma) (lysis buffer: 50 mM Tris pH 8.5, 150 mM NaCl, 5 mM MgCl2, Complete protease inhibitor cocktail (Roche), DNase A, 10 mM beta-Mercaptoethanol; binding buffer: 50 mM Tris pH 8.5, 150 mM Nacl, 10 mM beta-Mercaptoethanol, High salt buffer: 50 mM Tris pH 8.5, 1 M Nacl, 10 mM beta-Mercaptoethanol, elution buffer: 50 mM Tris pH 8.5, 150 mM Nacl,  200 mM imidazole, 10 mM beta-Mercaptoethanol). The buffer of the eluates was exchanged to binding buffer on a PD10 column and the protein was TEV-digested over night at RT. The sample was injected onto a Superdex 200 GL 10/300 column (GE Healthcare) equilibrated with gel filtration buffer (20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol). Eluted peaks were analyzed by SDS-PAGE and stained with InstantBlue (Expedeon). 
 
-One can basically distinguish three kind of pipelines which are triggered for
-every frame, for every run and for every sample, so with very different
-eigen-period.
+
+\section{Data analysis pipeline in sample changer mode}
+
+The sample changer allows a high throughput of different samples. Before and after measuring a sample, a background measurement using its corresponding buffer is performed. If the buffer of a sample is the same as the one of the preceding sample, the background measurement before the sample is dropped, as it is identical to the buffer measurement after the preceding sample. Hence, data is produced in sequences of the type \textit{buffer 1, sample 1, buffer 1, buffer 2, sample 2, buffer 2, \ldots} or  \textit{buffer 1, sample 1, buffer 1,  sample 2, buffer 1 \ldots}. Typically for each buffer or sample, 10 frames of 1~s exposure time are acquired. The following steps for data reduction and analysis are required:
+(i) The integration of an individual frame, (ii) The creation of a background corrected sample curve, (iii) basic analysis of the sample curve and (iv) modeling based on the basic analyis. In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
 
 \subsection{Azimuthal integration pipeline}
 
-This pipeline is triggered for every single frame acquired, hence every second
-and needs to have the lowest latency possible to display the integrated curve
-in \textem{real time} into the beamline control graphical interface BsxCube.
-The input data-structure for azimuthal integration contains especially
+This pipeline is triggered for every single frame acquired, i.e. every second,
+and therefore needs to have the lowest latency possible to display the integrated curve
+in \textit{real time} in the graphical beamline control  interface BsxCube.
+The input data-structure for azimuthal integration contains 
 information about the geometry of the experiment, the sample, its concentration
 and the transmitted intensity as measured on the beam-stop diode for
-normalization.
-To cope with the requested speed (dozens of Hertz requested), this pipeline
+normalization, etc.
+To cope with the requested speed (up to 10 frames per second), this pipeline
 has been optimized and simplified to the maximum. 
-It relies on FabIO\cite{fabio} for image reading (from NFS mounted disks) and
+It relies on the FabIO\cite{fabio} package for image reading (from NFS mounted disks) and
 pyFAI\cite{pyFAI} for azimuthal integration. 
-The detector being a pixel detector (Pilatus 1M from Dectris), the error can be
+As the images are acquired with a pixel detector (Pilatus 1M), the error can be
 assumed to be Poissonian and is integrated as such. 
-On the BioSaxs beamline at ESRF, the azimuthal integration calculation is
-performed on a dedicated graphics card using OpenCL, offloading this processing from CPU to
-GPU, hence leaving resources to other pipelines. 
-Subsequent normalization are
-performed directly using numpy\cite{numpy}.
+The azimuthal integration calculation is performed on a dedicated graphics card using OpenCL, offloading this processing from CPU to
+GPU, hence leaving resources to other pipelines.  Subsequent normalization are performed directly using numpy\cite{numpy}.
 The result is saved into a 3-column ASCII file suitable for further processing
-using the ATSAS tools\cite{atsas} and sent back to BsxCube for live display. 
+using the ATSAS tools\cite{atsas} and sent back to BsxCube for live display. In accordance with EMBL and ESRF standards, the scattering vector $q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
 
-\subsection{Curve merging}
-Data acquisition is usually performed in runs and consists in a dozen of frames
-of the same sample to be able to evaluate the radiation damage effects.
-This pipeline, called \textem{smartMerge}, is triggered at the end of each run
+\subsection{Curve merging, background correction and basic analysis}
+Data acquisition is usually performed sets of sample and buffer measurements. Each sample or background measurment consists of seperate frames (typically 10) 
+in order to be able to detect radiation damage and not further interpret data from damaged samples.
+The \textit{smartMerge} pipeline is triggered at the end of each measurement
 and is responsible for evaluating the similarity of different scattering
-patters, using the \textem{datcmp} tool from ATSAS and merging all frames
-similar to the first and propagate the associated metadata. All curve comparison
-can be performed in parallel on modern multicore computer.
+patters, using the \textit{datcmp} tool from ATSAS and merging all frames
+similar to the first and propagate the associated metadata. A flow diagramm is provided in figure~\ref{fig:smart}. All curve comparisons
+can be performed in parallel on modern multicore computers.\\
 
-Subsequently, the \textem{smartMerge} checks for the buffer-sample-buffer
-sequence and performs the averaging of the buffers and the subtraction from the
-sample data, providing the so called \textem{subtracted curve} containing only
-the scattering from the macromolecule.
+Subsequently, the \textit{smartMerge} calls the \textit{autoSub} plugin, which checks for the buffer-sample-buffer
+sequence and determines the otimal buffer and subtracts it from the
+sample data, providing the so called \textit{subtracted curve} containing only
+the scattering from the macromolecule. If the buffer before and after the sample are considered sufficiently similar by \textit{datcmp}, the optimal buffer is their average. If they differ too much, we subtract them individually from the sample curve and choose the one which results in the lower ratio of radius of gyration $R_{G}$ over forward scattering intensity $I_{0}$, as determined by the tool \textit{autorg} from ATSAS. If \textit{autorg} fails for both buffers, we simply use the one with the lower total scattering. Figure~\ref{fig:autosub} provides a flow chart of the plugin.\\
 
-Finally this \textem{subtracted curve} is analysed using the so called
-\textem{saxsAnalysis} plugin which performs  subsequently Guinier region fitting
-using \textem{autorg}, Fourier transform using \textem{datgnom} to obtain
-$\rho(r)$ and Porod volume assessement using \textem{datprorod} (those tools
-coming from the ATSAS package).
-All those information are then directly returned to BsxCube to inform the user
+Finally this \textit{subtracted curve} is analysed using the 
+\textit{saxsAnalysis} plugin which performs  subsequently uses tools from the ATSAS package for Guinier region fitting
+using \textit{autorg}, Fourier transform using \textit{datgnom} to obtain
+$p(r)$ and Porod volume assessement using \textit{datprorod}. In addition the plugin creates \textit{.png} figures of the subtracted curve and the fit created by \textit{datgnom}, the Guinier fit, the $p(r)$ function and Kratky plots whenever possible (figure \ref{plots}).
+All these informations and figures are then directly returned to BsxCube to inform the user
 of the success of the experiment and logged into the ISPyBB
-database\cite{ispybb} where they can be accessed via an web interface and 
-subsequently re-use.
+database\cite{ispybb} where they can be accessed via an web interface. Figure~\ref{fig:analysis} provides a flow chart of the plugin.
 
 \subsection{Ab initio reconstruction pipeline}
 
 This pipeline is in charge of recontructing the three dimentionnal model based
-of the \textem{subtracted curve} and is inspired from a preliminary work
-performed at the Diamond Light Source.
-It runs multiple instances of \textem{dammif} in parallel (16 by default) to get
-multiple models a PDB files. 
-After a first
-round of outlier rejection based on the goodness of fit (Rf) and the
-$sqrt{\chi}$  where the threshold is the mean plus a couple of standard
-deviation, only $N$ valid models remains. 
-Figure \ref{r} shows the plot which is generated to
-explain to the user why certain models are discareded.
+of the \textit{subtracted curve} and is inspired from a preliminary work
+performed at the Diamond Light Source. (Do we have a reference for this?)
+It runs multiple instances of \textit{dammif} in parallel (8 by default) to get
+multiple models \cite{dammif}. 
+After a first round of outlier rejection based on the goodness of fit ($R_{f}$) and the
+$\sqrt{\chi^{2}}$  where the threshold is the mean plus a two standard
+deviations, only $N$ valid models remains. 
+
+
 
 All $N$ remaining models are superimposed two by two using
-\textem{supcomb}\cite{supcomb}, launching $N*(N-1)/2$ processes in parallel
-thanks to the EDNA framework.
+\textit{supcomb}\cite{supcomb}, launching $N*(N-1)/2$ processes in parallel.
 The table containing the normalized spatial discrepancy (NSD) is then generated
-(see figure \ref{nsd}), explaining which model is the nearest from all other
+(see figure \ref{fgr:nsd}), explaining which model is the nearest from all other
 valid models. This model is called the reference model amd all other valid
-models are re-oriented and aligned on the reference one.
+models are re-oriented and aligned on the reference one. All models wiht an NSD higher than the mean plus one stadard deviation are discarded.
+%Figure \ref{fgr:nsd} shows the plot which is generated to
+%explain to the user why certain models are discarded.
 
-All valid models are merged using \textem{damaver}\cite{damaver} and
-\textem{damfilt} and finally reprocessed using \textem{damin}\cite{damin}.
+
+All valid models are merged using \textit{damaver}\cite{damaver},\textit{damstart} and
+\textit{damfilt} and finally refined using \textit{dammin}\cite{dammin}.
 This last step is pretty slow an lasts usually for dozens of minutes and is
-aborted after half an hour by EDNA as it often runs-away. All results are
-uploaded to the ISPyBb database where a visualizer is 
+aborted after half an hour by EDNA as it often does not finish. All results are
+uploaded to the ISPyB database where they can also be visualized. Figure~\ref{fig:modeling} provides a flow chart of the plugin.
 
 
-\section{HPLC mode}
+\section{Data analysis pipeline in HPLC mode}
+While the sample changer allows a high throuput of samples, it requires homogenous samples which do not degrade. Protein samples often are intrinsically heterogenous. For example, constituents of a complex might be present in excess or proteins might aggregate. On approach to this issue is to purify the sample as shortly as possbile before the measurement by directly collect data on the eluent a size exclusion system (SEC-SAXS or HPLC mode) \cite{SECBM29,otherSEC}. AT BM29 we continously collect 2D-diffraction frames throughout the SEC purification run at a rate of 0.5 to 1 Hz (depending on the synchrotron filling mode and the duration of the SEC purification), resulting in up to a few thousand frames. While we know that the first few frames are acquired on buffer, the sample composition for later frames is not known \textit{a priori}. The result of a SEC-SAXS experiement can be very complex. Our automatic analysis provides data reduction and basic analysis for every individual frame. In addition, it uses this information to try to identify regions in the chromatogram which correspond to one species and merges frames from these regions for a better signal to noise ratio. The goal of this proceure is not to produce an indealized curve of an individual species but to give a hint on the overall data quality as soon as possible.
 
-A couple of specific pipeline have been developed more recently when the
-sample-changer is replaced by a steric exclusion column based  chromatographic
-setup (hereafter named HPLC-mode).
-In HPLC-mode the eluate of the column is directly connected to the capillary
-and the buffer flows though continuously. 2D-diffraction frames are continuously
-taken at a frequency around 1 Hertz (the maximum achievable speed with the
-current system is 30 Hertz for the detector and around 10 Hertz for the
-data-analysis pipeline).
-\subsection{HPLC frame}
+\subsection{HPLC frame pipeline}
 
-This pipeline, triggered for every-frame, is similar to the azimuthal
-integration pipeline used in sample-changer-mode as it performs the regrouping
-of the image and provides the 1D curve.
-In addition, this plugin is in charge of defining the reference buffer by
-comparing any frame to the first one, assuming the eluate of the first frame
-contains pure buffer (using datcmp from the ATSAS package).
-Very similar frames (based on a threshold) are merged to the first one to define
-the averaged buffer of the experiment.
+This pipeline is triggered for every frame in HPLC mode. It integrates each frame using the Azimuthal integration pipeline and compares the result to the first frame using \textit{datcmp} from the ATSAS package. The frame is then classified as buffer, sample, or ``in between''. The first time a frame in a HPLC run is not classified as buffer, all previous frames are averaged into a ``run buffer''.
+For any frame classified as sample, the ``run buffer'' is subtracted, Guinier analysis is performed (with \textit{autorg} from the ATSAS package), providing a radius of gyration and the forward scattering intensity, and correlated volume it calculated in order to estimate the mass \cite{RamboTainerNature2013}. In addition, the plugin also calculates the total scattering intensity of any frame, regardless of its classification. \\
+The plugin can operate at about 1 Hz, so that the integrated frames can be displayed in the data acquisition software with minimal delays. It also directly returns the total scattering intensity to the data acquistion software so that it can display a chromatrogramm.
 
 Any frame very dissimilar (there is a second threshold) to the first/buffer
 (check?) is considered as a sample frame hence the buffer signal is subtracted
@@ -271,20 +261,13 @@ intensity of scattering at q=0.
  
 \subsection{HPLC flush}
 When the HPLC experiment ends (or is aborted) a specific plugin is launched to
-finish the processing of the experiment:
-* Merge all 1D diffraction patterns into a 2D dataset containing scattering
-intensity in function of scattering vector and time.
-* locate peaks, corresponding to the maximum of I0 in Guinier analysis
-* merge curves from the same sample to enhance the statistic. All eluate curves
-located around a local maxima of I0 with similar Rg are considered
-containing the same compound and hence merged togeather.
-
-All those results are saved into a single HDF5 which is uploaded to the ISPyBB
-database at the end of the processing. Figure \ref shows the result of an HPLC
-experiment where X compounds are separated \ldots.
+finish the processing of the experiment as one SEC-SAXS run. The plugin uses the results of \textit{autorg} to locate peaks using continous wave transforamtion as implemented in Scipy on the forward scattering \cite{cwt,scipy}, and then merges all individual curves around a local maxima of the forward scattering with similar radius of gyration. All processing results from the \textit{HPLC frame pipline} and the results of the peak fiding are
+saved into a single HDF5 which is uploaded to the ISPyB database at the end of the processing. In addition, the plugin creates figures (in .png and in .svg format) of the total scattering, forward scattering and radius of gyration \textit{vs.} frame number. Figure \ref{HPLC} shows the result of an HPLC
+experiment where one main peak and a trailing shoulder is identified.
+On all merged files are further analysed by the \textit{SAXS analysis} and the \textit{Ab initio reconstruction pipeline} plugins from the sample changer pipeline.
 
 \section{Offline data analysis}
-Describes reprocess mode &
+In case offline processing is required, e.g. when when one of the parameters for the azimutal integration of previsously processed data needs to be adjusted, several python scripts for starting subpipelines are avaible. The scripts run the pipeline on files specified via command line   Describes reprocess mode 
 explains why cannot be distributed (licensing, difficulty to install)
  
 \section{Hardware used}
@@ -298,19 +281,26 @@ the azimuthal integration pipeline, which needs the lowest latency, is run on
 the other computer.
 
 
+\section{Practical example}
+To illustrate the functionality of the processing pipeline we show data acquired on a mutant of the helicase protein D5TVE from  of Vaccinia virus (VACV). Data was acquired as both a dilution series using the sample changer and using SEC-SAXS. Results are shown in figures \ref{fig:HPLC} and \ref{fig:exp}. The HPLC run shows a strong main peak with extended tails both sides. Direct comparison of the different concentrations from the dilution series onl shows differences at very small $q$ (figure \ref{fig:exp}a)), but direct comparison of the highest concentration to the merged data from the main peak from the HPLC run shows only small differences (figure \ref{fig:exp}b). 
+The automatic processing results, especially the trends in $R_{G}$  clearly show the presence of concentration effects in the samples measured with the sample changer. In this particular case it is clear that the quality of the data collected with SEC-SAXS are of superior quality and that only htey should be considered for further processing.
 
 \section{Conclusion}
 
 
-\ack{Acknowledgements}
-Ricardo Fernandes & Thomas Boeglin: original reprocess 
-Peter Boesecke: original azimuthal integration procedure
-Olof Svensson: original author of EDNA
-Irakli for the original ab-initio pipeline 
-Al & Dmitry for the atsas package and support 
-Staffan Ohlsson & Matias Guijarro: bliss contact
+\section{Conclusions and Outlook}
+offline processing interface, workflows
+
+\appendix
+
+\ack{The authors would like to thank Ricardo Fernandes and Thomas Boeglin for developing the original offline reprocessing tools, Peter Boesecke for the original azimuthal integration procedure, Olof Svensson for the development of EDNA, Irakli Sikharulidze for the original version of the \textit{ab initio} modeling pipeline, Alezey Kikhney, Daniel Franke and Dmitry for the ATSAS package and support in its implementation and Staffan Ohlsson and Matias Guijarro for integration with the data acquisition software.}
+
+\begin{references}
+
 \bibliographystyle{iucr}
 \bibliography{biblio}
+
+\end{references}
 
 % \reference{Author, A. \& Author, B. (1984). \emph{Journal} \textbf{Vol}, 
 % first page--last page.}
@@ -341,5 +331,31 @@ Staffan Ohlsson & Matias Guijarro: bliss contact
 % \includegraphics{fig1.ps}
 % \end{figure}
 % 
+
+\begin{figure}
+\centering
+\includegraphics[width=8cm]{nsd.png}%
+\caption{Plots created by the pipeline for comparing a set of \textit{ab initio} models. The matrix on the left hand site gives the pair-wise normalized spatial discrepancy (NSD) between two models. Thebar plot on the right hand site gives the mean NSD. The layout is adjusted from the standard verion for improved readability in print.}
+\label{fgr:nsd}
+\end{figure}
+
+\begin{table}
+\begin{tabular}{ l c | c c c c c c }
+   & $c$  & $I_{0}$  & $R_{G}$ & $D_{max}$ & $V_{P}$ & $V_{c}$ & Mass from $V_{c}$\\
+	 &  (mg/ml) & (kDa) & (nm)&  (nm)&  (nm$^{3}$) & (nm$^{2}$) & (kDa)\\
+\hline 
+Sample changer & 5.00  & 35.06 & 2.80 & 9.37  & 72.00 n& &  \\
+Sample changer & 2.50  & 34.28 & 2.83  & 9.91  & 72.08 & &  \\
+Sample changer & 1.25 & 33.58& 2.86  & 8.74  & 69.82 & &  \\
+Sample changer & 0.62  & 35.1& 2.99  & 10.48 & 73.89 & &  \\
+Sample changer & 0.31 & 35.83  & 3.26  & 8.72  & 74.42& &  \\
+HPLC, top of peak & - & 183.16 & 2.72  & -  & - & 4.08 & 49.70 \\
+HPLC, merge & - & 123.89 & 2.70  & 9.46 & 69.97 & &  \\
+Manual merge & - &  149.90 & 2.69 & 8.25 & & &  \\
+\end{tabular}
+\caption{Overview on the automatic processing results }
+\label{tbl:results}
+\end{table}
+
 
 \end{document}                
