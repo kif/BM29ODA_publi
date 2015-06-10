@@ -49,7 +49,7 @@
 \author[a]{Martha}{Brennich}
 \author[a]{Alejandro}{De Maria Antolinos}
 \author[c]{Stefanie}{Hutin}
-\aff[a]{ESRF Grenoble TODO \country{France}}
+\aff[a]{ESRF, 71 avenue des Martyrs, 38043 Grenoble Cedex 9, \country{France}}
 \aff[b]{EMBL Grenoble TODO \country{France}}
 \aff[c]{UVHCI Grenoble\country{France}}
 
@@ -84,8 +84,15 @@ Low-latency data reduction and real-time feed back to the users
 \end{synopsis}
 
 \begin{abstract}
-High throughput small-Angle X-ray scattering on proteins in solution at synchrotron sources is a commonly used technique in structural biology which relies on highly automated data acquisition. Data reduction and primary analysis for bioSAXS experiments consists of a well-defined series of individual tasks whose automation allows easy first assessment of the quality of collected data.
-This articel describes both the logic and the technical implementation the automated processing pipeline for bioSAXS data implemented at ESRF BM29 using the EDNA framework.
+High throughput small-angle X-ray scattering on proteins in solution at
+synchrotron sources is a commonly used technique in structural biology which
+relies on highly automated data acquisition. 
+Data reduction and primary analysis for bioSAXS experiments consists of a 
+well-defined series of individual tasks whose automation allows easy first 
+assessment of the quality of collected data.
+This articel describes both the logic and the technical implementation of the
+automated processing pipeline for bioSAXS data at the ESRF BM29 beam-line using
+the EDNA framework.
 \end{abstract}
 
 
@@ -96,28 +103,58 @@ This articel describes both the logic and the technical implementation the autom
      % and \subsubsection's as required.
 
 \section{Introduction}
-The popularity of small-Angle X-ray scattering on proteins and nucleic acids in solution (bioSAXS) to resolve their three-dimensional shape is continously growing \cite{Graewert2013,Hura2009,Reyes2014}. This has not only resulted in the construction of new dedicated beamlines, such as BM29 at ESRF, P12 at EMBL Hamburg or B21 at Diamond Light Source \cite{BM29paper,P12,B21},  but also pushed forward new  developments in both beam line instrumentation and sample handling. Examples for these development are the develoment of dedicated sample changers \cite{SCPaper} or the integration of size exclusion chromatography (SEC) systems into existing beamlines to enable on-line size exclusion\cite{SECPaper2012}.\\
-BM29 is a small angle X-ray scattering beamline dedicated to structural biology \cite{BM29paper}. Currently, the beamline provides two main experimental modes: The use of the bioSAXS sample changer  to collect data on  alternating buffer\/sample\/buffer sequences (sample changer mode)  and an online HPLC system for SEC-SAXS experiments(HPLC mode).
-In both modes, data is typically collected at a rate of on frame per second. In order to estimate the quality and usefulness it is therefore necesary to robustly process data as quuickly and fast as possible.\\
+The popularity of small-angle X-ray scattering on proteins and nucleic acids in
+solution (bioSAXS) to resolve their three-dimensional shape is continously
+growing \cite{Graewert2013,Hura2009,Reyes2014}. 
+This has not only resulted in the construction of new dedicated
+synchrotron beam-lines, such as BM29 at ESRF, P12 at EMBL Hamburg or B21 at
+Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward new 
+developments in both beam-line instrumentation and sample handling. 
+Examples for these development are the develoment of dedicated sample changers
+\cite{SCPaper} or the integration of size exclusion chromatography (SEC) systems
+into existing beam-lines to enable on-line size exclusion \cite{SECPaper2012}.
 
-Available processing tools for SAXS data which support online processing of large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}\ cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and \textit{SASFLOW} \cite{X33P,P12}.  \textit{XRDUA}, \textit{EDNA}
-Our goal was a robust online autoprocessing pipelines for bioSAXS data for data reduction, primary analysis and \textit{ab initio} modeling. The additional needs of FLEXIBILITY and elimination of direct user interaction, lead us to develop a pipelines for both sample changer and HPLC mode in the EDNA framework \cite{edna}. The pipelines use pyFAI for azimutal integration \cite{pyFAI} and tools from the ATSAS package \cite{ATSAS1,ATSAS2} for analysis and modeling. They are smoothly integrated with the beamline control system and the ISPyB database. 
+The \textit{BioSaxs} beam-line, BM29 at synchrotron ESRF, is a small angle X-ray
+scattering beamline dedicated to structural biology \cite{BM29paper}. 
+Currently, the beamline provides two main experimental modes: The use of the
+bioSAXS sample changer to collect data on alternating buffer\/sample\/buffer
+sequences (so called: sample changer mode) and an online HPLC system for
+SEC-SAXS experiments (called HPLC mode).
+In both modes, data are typically collected at a rate of one frame per second
+(1 fps).
+In order to estimate the quality and usefulness it is therefore necessary to
+robustly process data as quickly and fast as possible. 
+
+Available processing tools for SAXS data which support online processing of
+large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
+\cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and
+\textit{SASFLOW} \cite{X33P,P12}.  \textit{XRDUA}, \textit{EDNA}, \ldots
+Our goal was a robust set of online autoprocessing pipelines for bioSAXS data 
+for data reduction, primary analysis and \textit{ab initio} modeling. 
+The additional needs of FLEXIBILITY and elimination of direct user interaction, 
+lead us to develop a pipelines for both sample changer and HPLC mode within the
+EDNA framework \cite{edna}. 
+These pipelines use pyFAI for azimutal integration \cite{pyFAI} and tools from
+the ATSAS package \cite{ATSAS1, ATSAS2} for analysis and modeling. They are
+smoothly integrated with the beamline control system (BsxCube) and the ISPyB
+database.
 
 \section{Technical background}
 
-Online data analysis is needed on highly automated beamlines where the
-acquisition of a sample lasts for less than a second and there is virtually no
-dead-time between samples. Therefore the processing speed needs to keep up with the data acquistion speed, which at BM29 is typically one frame per second and about three minutes for a set of background and sample measurements in sample changer mode.
+Online data analysis is a keey component of any highly automated beam-lines
+where the acquisition of a sample lasts for few seconds and there is
+virtually no dead-time between samples. 
+Therefore the processing speed needs to keep up with the data acquisition, which
+at ESRF-BM29 is typically one frame per second and about three minutes for a set
+of background and sample measurements in sample changer mode.
 
 
 \subsection{Experiment control}
-Data acquisitiona at BM29 is controled via a graphical interface, BsXCube, which is
-written in Python/Qt4 \cite{pyqt} and is based on a strong Model-View-Controler
-pattern (MVC here after)\cite{mvc}.
-BsXCube is composed of Control-objects (the Model in MVC) and Bricks (the
-View in MVC) which communicate with each other and with the beamline components
-(detector, motors, sample changer, data analyis \ldots) via protocols like 0MQ\cite{zmq} or
-tango\cite{tango} which are the Controlers in the MVC pattern.
+Data acquisition at the ESRF-BM29 beamline is controled via the BsXCube
+graphical interface, written in Python/Qt4 \cite{pyqt}.
+BsXCube is composed of control-objects which communicate with other beam-line
+components (i.e. detector, motors, sample changer, data analyis server\ldots)
+via the tango protocol\cite{tango}.
 
 %\subsection{Data analysis server}
 
@@ -127,40 +164,65 @@ tango\cite{tango} which are the Controlers in the MVC pattern.
 
 
 \subsection{EDNA} 
-EDNA is a plugin-based framwork to build pipelines for
-data-analysis. The basic idea behind EDNA is to have plugins which are either responsible for the execution
-of a task or an external process, called \textit{execution plugins} or in charge of launching and managing other
-plugin (either execution or control plugins), either sequentially or in
-parallel, called \textit{control plugins}.
-The number of execution plugins running simultaneouly is limited by processor resources of the computer.
-Any plugin receives its input arguments and returns its result using data-structures which can be serialized
-into XML for sending them to disk or via the network. \\
+EDNA is a plugin-based framework to build pipelines for
+data-analysis. 
+The basic idea behind EDNA is to have plugins which are either responsible for the execution
+of a task or an external process (called \textit{execution plugins}) or in
+charge of launching and managing other plugins, either sequentially or in
+parallel (called \textit{control plugins}).
+The number of execution plugins running simultaneously is limited by processor
+resources of the computer (and the Python global interpreter lock).
+Any plugin receives its input arguments and returns its result using
+data-structures (actually python objects) which can be serialized into XML for
+sending them to disk or via the network.
 
-An EDNA job is a top level control plugin which ommunicates with the outside world, providing its state,
-or its results even after processing is finished, while keeping its memory footprint as limited as possible. 
+An EDNA job is a top level control plugin which communicates with the outside
+world, providing its state, or its results even after processing is finished,
+while keeping its memory footprint as limited as possible. 
 
 \subsection{The Tango device server} 
-For accepting processing jobs from the outside, e.g. the data acquisition software, EDNA provides a Tango device server interface \cite{tango,pytango}. The device server starts  EDNA
-jobs via the \textit{startJob} command. The parameters of this command are a plugin name and the input data-structure associated to it, and  it returns a job
-identifier the processing requester. This tango device server is hence completely generic and can be used for any type of EDNA jobs.\\
+For accepting processing jobs from the outside, e.g. from the data
+acquisition software (BsXCube), EDNA provides a Tango device server interface
+\cite{tango,pytango}. 
+The device server starts EDNA jobs via the \textit{startJob} command. 
+The parameters of this command are a plugin name and the input data-structure
+associated to it, and it returns a job identifier to the requester.
+This tango device server is hence completely generic and can be used for any
+type of EDNA jobs. 
 
-To have the best responsiveness at the tango level, EDNA jobs are not started as they arrive but they are just instanciated and queued.  
+To have the best responsiveness at the tango level, EDNA jobs are not started as
+they arrive but they are just instantiated and queued.   
 Another thread is responsible for starting them and can start multiple jobs in parallel
 (data-parallelism). The number of jobs and the number of actual execution
 plugins running simultaneously is controlled independently to do the best usage
-of the computing power available within the  single computer.\\
+of the computing power available within the single computer.
 
-Once finished, any EDNA job emits a tango-event to announce its success or its failure. Other processes, e.g. the data acquistion software, can then retrieve the result of the processing, e.g. the 1D integrated scattering curve and display it. \\
-This architechture allows us to start processing for indivual files as needed and eliminates the need for a file system notifier running in the background. WHY is this adventagueous?
+Once finished, any EDNA job emits a tango-event to announce the results are
+available with the status: success or failure. 
+The data acquistion software, can then retrieve the result
+of the processing, for example the 1D integrated scattering curve and
+display it.
 
-\subsection{Hardware, OS, software versions}
-Two computers with GPU computing capabilities (Nvidia Quadro 4000) are dedicated
-for online data analysis on the biosaxs beamline, they are independent and
-feature the same software installation hence providing redondancy (if one fails).
+This architecture allows to start processing for indiviual images or
+display curves instantaneously without polling the shared filesystem.
+Indeed, synchronizaton of shared filesystems across the network
+often exhibits delay of multiple seconds. 
+
+\subsection{Hardware, software and versions}
+Two computers with GP-GPU computing capabilities (Nvidia Quadro 4000) are
+dedicated for online data analysis on the \textit{BioSaxs} beam-line, they are
+independent and feature the same software installation.
+
 As the \textit{ab initio} reconstruction pipeline lasts of dozens of minutes
-(due to the execution of DAMMIN), it is run on the more powerful computer while 
+(due to the execution of DAMMIN), it is run on the most powerful computer while 
 the azimuthal integration pipeline, which needs the lowest latency, is run on
-the other computer. A third computer with a XXX GPU is available for off-line reprocessing and development. The operating system of all three computers is Debian 7. The ATSAS release is ATSAS 2.6.0 for Debian 6.
+the small computer. 
+A third computer with similar GPU computing capabilities is available for
+off-line reprocessing, development of pipelines and acts as a spare. 
+
+All three computers are running Debian 7 operating system with ATSAS
+(version 2.6.0).
+
 
 \subsection{Preparation of protein sample and data acquisition}
  Move this section to Supplement??\\
