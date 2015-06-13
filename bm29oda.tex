@@ -135,7 +135,7 @@ The additional needs of FLEXIBILITY and elimination of direct user interaction,
 lead us to develop a pipelines for both sample changer and HPLC mode within the
 EDNA framework \cite{edna}.
 These pipelines use pyFAI for azimutal integration \cite{pyFAI} and tools from
-the ATSAS package \cite{ATSAS1, ATSAS2} for analysis and modeling. They are
+the \textsc{atsas} package \cite{ATSAS1, ATSAS2} for analysis and modeling. They are
 smoothly integrated with the beamline control system (BsxCube) and the ISPyB
 database.
 
@@ -201,8 +201,7 @@ Once finished, any EDNA job emits a tango-event to announce the results are
 available with the status: success or failure.
 The data acquistion software, can then retrieve the result
 of the processing, for example the 1D integrated scattering curve and
-display it.
-
+display it (without reading it from disk).
 This architecture allows to start processing for indiviual images or
 display curves instantaneously without polling the shared filesystem.
 Indeed, synchronizaton of shared filesystems across the network
@@ -220,29 +219,61 @@ the small computer.
 A third computer with similar GPU computing capabilities is available for
 off-line reprocessing, development of pipelines and acts as a spare.
 
-All three computers are running Debian 7 operating system with ATSAS
+All three computers are running Debian 7 operating system with \textsc{atsas}
 (version 2.6.0).
 
 
 \subsection{Preparation of protein sample and data acquisition}
  Move this section to Supplement??\\
-All examples of protein data in this publication were acquired on the protein D5TVE from Vaccinia virus (VACV).
-The sequences of D5R is from the VACV strain Copenhagen (GenBank accession number M35027.1). D5R 391-785 was cloned into the pProEx Htb (Invitrogen). D5 was fused to an N-terminal hexahistidine tag that can be cleaved with the TEV (tobacco etch virus) protease. It was expressed in BL21* and purified over a (HIS-select; Sigma) (lysis buffer: 50 mM Tris pH 8.5, 150 mM NaCl, 5 mM MgCl2, Complete protease inhibitor cocktail (Roche), DNase A, 10 mM beta-Mercaptoethanol; binding buffer: 50 mM Tris pH 8.5, 150 mM Nacl, 10 mM beta-Mercaptoethanol, High salt buffer: 50 mM Tris pH 8.5, 1 M Nacl, 10 mM beta-Mercaptoethanol, elution buffer: 50 mM Tris pH 8.5, 150 mM Nacl,  200 mM imidazole, 10 mM beta-Mercaptoethanol). The buffer of the eluates was exchanged to binding buffer on a PD10 column and the protein was TEV-digested over night at RT. The sample was injected onto a Superdex 200 GL 10/300 column (GE Healthcare) equilibrated with gel filtration buffer (20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol). Eluted peaks were analyzed by SDS-PAGE and stained with InstantBlue (Expedeon).
+All examples of protein data in this publication were acquired on the protein
+D5TVE from Vaccinia virus (VACV).
+The sequences of D5R is from the VACV strain Copenhagen (GenBank accession
+number M35027.1). D5R 391-785 was cloned into the pProEx Htb (Invitrogen).
+D5 was fused to an N-terminal hexahistidine tag that can be cleaved with the TEV
+(tobacco etch virus) protease.
+It was expressed in BL21* and purified over a (HIS-select; Sigma) (lysis buffer:
+50 mM Tris pH 8.5, 150 mM NaCl, 5 mM MgCl2, Complete protease inhibitor cocktail
+(Roche), DNase A, 10 mM beta-Mercaptoethanol; binding buffer: 50 mM Tris pH 8.5,
+150 mM Nacl, 10 mM beta-Mercaptoethanol, High salt buffer: 50 mM Tris pH 8.5, 1
+M Nacl, 10 mM beta-Mercaptoethanol, elution buffer: 50 mM Tris pH 8.5, 150 mM
+Nacl,  200 mM imidazole, 10 mM beta-Mercaptoethanol).
+The buffer of the eluates was exchanged to binding buffer on a PD10 column and
+the protein was TEV-digested over night at RT.
+The sample was injected onto a Superdex 200 GL 10/300 column (GE Healthcare)
+equilibrated with gel filtration buffer (20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol).
+Eluted peaks were analyzed by SDS-PAGE and stained with InstantBlue (Expedeon).
 
 
 \section{Data analysis pipeline in sample changer mode}
 
-The sample changer allows a high throughput of different samples. Before and after measuring a sample, a background measurement using its corresponding buffer is performed. If the buffer of a sample is the same as the one of the preceding sample, the background measurement before the sample is dropped, as it is identical to the buffer measurement after the preceding sample. Hence, data is produced in sequences of the type \textit{buffer 1, sample 1, buffer 1, buffer 2, sample 2, buffer 2, \ldots} or  \textit{buffer 1, sample 1, buffer 1,  sample 2, buffer 1 \ldots}. Typically for each buffer or sample, 10 frames of 1~s exposure time are acquired. The following steps for data reduction and analysis are required:
-(i) The integration of an individual frame, (ii) The creation of a background corrected sample curve, (iii) basic analysis of the sample curve and (iv) modeling based on the basic analyis. In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
+The sample changer allows a high throughput of different samples.
+Before and after measuring a sample, a background measurement using its
+corresponding buffer is performed.
+If the buffer of a sample is the same as the one of the preceding sample, the
+background measurement before the sample is dropped, as it is identical to the
+buffer measurement after the preceding sample.
+Hence, data is produced in sequences of the type \textit{buffer 1, sample 1,
+buffer 1, buffer 2, sample 2, buffer 2, \ldots}  or  \textit{buffer 1, sample 1,
+buffer 1,  sample 2, buffer 1 \ldots}.
+Typically for each buffer or sample, 10 frames of 1~s exposure time are acquired.
+
+The following steps for data reduction and analysis are required:
+\begin{enumerate}
+\item the integration of an individual frame,
+\item the creation of a background corrected sample curve,
+\item basic analysis of the sample curve (guinier plots, and other invariants)
+\item \textit{ab-initio} modeling based on the basic analyis.
+\end{enumerate}
+In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
 
 \subsection{Azimuthal integration pipeline}
 
 This pipeline is triggered for every single frame acquired, i.e. every second,
 and therefore needs to have the lowest latency possible to display the integrated curve
-in \textit{real time} in the graphical beamline control  interface BsxCube.
+in \textit{real time} in the graphical beamline control interface BsxCube.
 The input data-structure for azimuthal integration contains
 information about the geometry of the experiment, the sample, its concentration
-and the transmitted intensity as measured on the beam-stop diode for
+and the transmitted intensity (I1) as measured on the beam-stop diode for
 normalization, etc.
 To cope with the requested speed (up to 10 frames per second), this pipeline
 has been optimized and simplified to the maximum.
@@ -250,12 +281,15 @@ It relies on the FabIO\cite{fabio} package for image reading (from NFS mounted d
 pyFAI\cite{pyFAI} for azimuthal integration.
 As the images are acquired with a pixel detector (Pilatus 1M), the error can be
 assumed to be Poissonian and is integrated as such.
-The azimuthal integration calculation is performed on a dedicated graphics card using OpenCL, offloading this processing from CPU to
-GPU, hence leaving resources to other pipelines.
+The azimuthal integration calculation is performed on a dedicated graphics card
+(Nvidia Quadro 4000) using OpenCL, offloading this processing from CPU to GPU,
+hence leaving resources to other pipelines.
 Subsequent normalization are performed directly using numpy\cite{numpy}.
 The result is saved into a 3-column ASCII file suitable for further processing
-using the ATSAS tools\cite{atsas} and sent back to BsxCube for live display.
-In accordance with EMBL and ESRF standards, the scattering vector $q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
+using the \textsc{atsas} tools\cite{atsas} and sent back to BsxCube for
+live display.
+In accordance with EMBL and ESRF standards, the scattering vector
+$q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
 
 \subsection{Curve merging, background correction and basic analysis}
 Data acquisition is usually performed sets of sample and buffer measurements.
@@ -263,30 +297,51 @@ Each sample or background measurment consists of seperate frames (typically 10)
 in order to be able to detect radiation damage and not further interpret data from damaged samples.
 The \textit{SmartMerge} pipeline is triggered at the end of each measurement
 and is responsible for evaluating the similarity of different scattering
-patters, using the \textit{datcmp} tool from ATSAS and merging all frames
+patters, using the \textit{datcmp} tool from \textsc{atsas} and merging all frames
 similar to the first and propagate the associated metadata.
 A flow diagramm is provided in figure~\ref{fig:smart}.
 All curve comparisons are performed in parallel on modern multicore
 computers thanks to EDNA multi-threded environment.
 
-Subsequently, the \textit{smartMerge} calls the \textit{autoSub} plugin, which checks for the buffer-sample-buffer
-sequence and determines the otimal buffer and subtracts it from the
-sample data, providing the so called \textit{subtracted curve} containing only
-the scattering from the macromolecule. If the buffer before and after the sample are considered sufficiently similar by \textit{datcmp}, the optimal buffer is their average. If they differ too much, we subtract them individually from the sample curve and choose the one which results in the lower ratio of radius of gyration $R_{G}$ over forward scattering intensity $I_{0}$, as determined by the tool \textit{autorg} from ATSAS. If \textit{autorg} fails for both buffers, we simply use the one with the lower total scattering. Figure~\ref{fig:autosub} provides a flow chart of the plugin.\\
+Subsequently, the \textit{SmartMerge} calls the \textit{autoSub} plugin, which
+checks for the buffer-sample-buffer sequence and determines the optimal buffer
+(see hereafter) and subtracts it from the sample data,  providing the so called
+\textit{subtracted curve} containing only the scattering from the macromolecule.
+If the buffer measured before and after the sample are considered sufficiently
+similar by \textit{datcmp}, the optimal buffer is their average.
+If they differ too much, each of them is subtracted individually from the
+sample curve and the difference which results in the lower ratio of radius
+of gyration $R_{G}$ over forward scattering intensity $I_{0}$, as determined by
+the tool \textit{autorg} from \textsc{atsas} is retained.
+
+(???)
+
+If \textit{autorg} fails for both buffers, we simply use the one with the lower
+total scattering. Figure~\ref{fig:autosub} provides a flow chart of the plugin.\\
 
 Finally this \textit{subtracted curve} is analysed using the
-\textit{saxsAnalysis} plugin which performs  subsequently uses tools from the ATSAS package for Guinier region fitting
+\textit{SaxsAnalysis} plugin which performs subsequently uses tools from the \textsc{atsas} package for Guinier region fitting
 using \textit{autorg}, Fourier transform using \textit{datgnom} to obtain
-$p(r)$ and Porod volume assessement using \textit{datprorod}. In addition the plugin creates \textit{.png} figures of the subtracted curve and the fit created by \textit{datgnom}, the Guinier fit, the $p(r)$ function and Kratky plots whenever possible (figure \ref{plots}).
+$p(r)$ and Porod volume assessement using \textit{datprorod}.
+In addition the \textit{SaxsAnalysis} plugin creates \textit{PNG} figures of
+the subtracted curve and the fit created by \textit{datgnom}, the Guinier fit, the $p(r)$ function and Kratky plots whenever possible (figure~\ref{plots}).
 All these informations and figures are then directly returned to BsxCube to inform the user
 of the success of the experiment and logged into the ISPyBB
-database\cite{ispybb} where they can be accessed via an web interface. Figure~\ref{fig:analysis} provides a flow chart of the plugin.
+database \cite{ispybb} where they can be accessed via an web interface.
+Figure~\ref{fig:analysis} provides a flow chart of the plugin.
 
 \subsection{Ab initio reconstruction pipeline}
 
 This pipeline is in charge of recontructing the three dimentionnal model based
 of the \textit{subtracted curve} and is inspired from a preliminary work
-performed at the Diamond Light Source. (Do we have a reference for this?)
+performed at the Diamond Light Source.
+(
+Jun Aishima , Irakli Sikharulidze, Conor Lehane, Tobias Richter, Karl Levik,
+Matthew Gerring, James Doutch, Mark Tully, Katsuaki Inoue, Nick Terrill, Paul Gibbons, Alun Ashton
+Integration of Data Acquisition and Data Analysis for SAXS Experiments at Diamond Light Source
+American crystallographic Association, May 14-18 2014, session M010.3
+)
+
 It runs multiple instances of \textit{dammif} in parallel (8 by default) to get
 multiple models \cite{dammif}.
 After a first round of outlier rejection based on the goodness of fit ($R_{f}$) and the
@@ -317,8 +372,8 @@ While the sample changer allows a high throuput of samples, it requires homogeno
 
 \subsection{HPLC frame pipeline}
 
-This pipeline is triggered for every frame in HPLC mode. It integrates each frame using the Azimuthal integration pipeline and compares the result to the first frame using \textit{datcmp} from the ATSAS package. The frame is then classified as buffer, sample, or ``in between''. The first time a frame in a HPLC run is not classified as buffer, all previous frames are averaged into a ``run buffer''.
-For any frame classified as sample, the ``run buffer'' is subtracted, Guinier analysis is performed (with \textit{autorg} from the ATSAS package), providing a radius of gyration and the forward scattering intensity, and correlated volume it calculated in order to estimate the mass \cite{RamboTainerNature2013}. In addition, the plugin also calculates the total scattering intensity of any frame, regardless of its classification. \\
+This pipeline is triggered for every frame in HPLC mode. It integrates each frame using the Azimuthal integration pipeline and compares the result to the first frame using \textit{datcmp} from the \textsc{atsas} package. The frame is then classified as buffer, sample, or ``in between''. The first time a frame in a HPLC run is not classified as buffer, all previous frames are averaged into a ``run buffer''.
+For any frame classified as sample, the ``run buffer'' is subtracted, Guinier analysis is performed (with \textit{autorg} from the \textsc{atsas} package), providing a radius of gyration and the forward scattering intensity, and correlated volume it calculated in order to estimate the mass \cite{RamboTainerNature2013}. In addition, the plugin also calculates the total scattering intensity of any frame, regardless of its classification. \\
 The plugin can operate at about 1 Hz, so that the integrated frames can be displayed in the data acquisition software with minimal delays. It also directly returns the total scattering intensity to the data acquistion software so that it can display a chromatrogramm.
 
 Any frame very dissimilar (there is a second threshold) to the first/buffer
@@ -362,7 +417,7 @@ offline processing interface, workflows
 developing the original offline reprocessing tools, Peter Boesecke for the
 original azimuthal integration procedure, Olof Svensson for the development of
 EDNA, Irakli Sikharulidze for the original version of the \textit{ab initio}
-modeling pipeline, Alexey Kikhney, Daniel Franke and Dmitry for the ATSAS
+modeling pipeline, Alexey Kikhney, Daniel Franke and Dmitry for the \textsc{atsas}
 package and support in its implementation and Staffan Ohlsson and Matias
 Guijarro for integration with the data acquisition software.}
 
@@ -392,15 +447,17 @@ licencing issues.
 
 The azimuthal integration is performed via pyFAI\cite{pyfai}, the Python library
 for fast azimuthal integration, which is accelerated on GPU\cite{pyfai_gpu}.
-Diffraction image reading is performed by FabIO \cite{fabio}. Both libraries
+Diffraction image reading is performed by FabIO \cite{fabio}.
+Both libraries
 are licensed under GPL and hosted under those web pages:
 http://github.com/pyFAI and https://fable.sf.net.
 Some \textsc{atsas} parts have been implemented in Python to offer a better
 integration into the processing pipelines (by avoiding the fork of many
-processes): \textsc{dataver}, \textsc{damaver}, \ldots  and \textsc{supcomb} are
-available as part of the \textit{freesas} package whhich re-implements the
+processes): \textit{dataver}, \textit{damaver}, \ldots  and \textit{supcomb}
+are available as part of the \textsc{freesas} package whhich re-implements the
 algorithms in a MIT type license. Freesas is available on github at
-https://github.com/kif/freesas
+https://github.com/kif/freesas but without garanteeing any
+numerical equivalence with the reference implementation.
 
 Finally the other tools of the Python scientific stack (Numpy, scipy,
 matplotlib) are licenced under BSD license.
