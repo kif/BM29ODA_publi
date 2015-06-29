@@ -21,7 +21,7 @@
                                   %   M - IUCrJ
                                   %   S - Journal of Synchrotron Radiation
 %\usepackage[format=plain,justification=raggedright,singlelinecheck=false,font=small,labelfont=bf,labelsep=space]{caption}
-\usepackage{lineno}
+%\usepackage{lineno}
 \usepackage[pdftex]{graphicx}
 %\usepackage{epstopdf}
 \usepackage{float}
@@ -49,6 +49,7 @@
 \author[a]{Martha}{Brennich}
 \author[a]{Alejandro}{De Maria Antolinos}
 \author[c]{Stefanie}{Hutin}
+\author[a]{Guillaume}{Bonamis}
 \aff[a]{ESRF, 71 avenue des Martyrs, 38043 Grenoble Cedex 9, \country{France}}
 \aff[b]{EMBL Grenoble TODO \country{France}}
 \aff[c]{UVHCI Grenoble\country{France}}
@@ -131,17 +132,19 @@ large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
 \textit{SASFLOW} \cite{X33P,P12}.  \textit{XRDUA}, \textit{EDNA}, \ldots
 Our goal was a robust set of online autoprocessing pipelines for bioSAXS data
 for data reduction, primary analysis and \textit{ab initio} modeling.
-The additional needs of FLEXIBILITY and elimination of direct user interaction,
-lead us to develop a pipelines for both sample changer and HPLC mode within the
+The additional needs of \textsc{flexibility} and elimination of
+direct user interaction, lead us to develop a pipelines for both sample changer and HPLC mode within the
 EDNA framework \cite{edna}.
-These pipelines use pyFAI for azimutal integration \cite{pyFAI} and tools from
-the \textsc{atsas} package \cite{ATSAS1, ATSAS2} for analysis and modeling. They are
-smoothly integrated with the beamline control system (BsxCube) and the ISPyB
-database.
+These pipelines use pyFAI for the azimutal integration \cite{pyFAI} and tools
+from the \textsc{atsas} package \cite{ATSAS1, ATSAS2} for analysis and modeling.
+Some parts of the \textsc{atsas} package have been re-implemented as a Python
+library (named FreeSAS) for a better integration into the Python-based piepline. 
+All data analysis is smoothly integrated with the beamline control system
+(BsxCube) and the ISPyB database.
 
 \section{Technical background}
 
-Online data analysis is a keey component of any highly automated beam-lines
+Online data analysis is a key component of any highly automated beam-lines
 where the acquisition of a sample lasts for few seconds and there is
 virtually no dead-time between samples.
 Therefore the processing speed needs to keep up with the data acquisition, which
@@ -267,7 +270,7 @@ The following steps for data reduction and analysis are required:
 In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
 
 \subsection{Azimuthal integration pipeline}
-
+\label{AI}
 This pipeline is triggered for every single frame acquired, i.e. every second,
 and therefore needs to have the lowest latency possible to display the integrated curve
 in \textit{real time} in the graphical beamline control interface BsxCube.
@@ -282,8 +285,8 @@ pyFAI\cite{pyFAI} for azimuthal integration.
 As the images are acquired with a pixel detector (Pilatus 1M), the error can be
 assumed to be Poissonian and is integrated as such.
 The azimuthal integration calculation is performed on a dedicated graphics card
-(Nvidia Quadro 4000) using OpenCL, offloading this processing from CPU to GPU,
-hence leaving resources to other pipelines.
+(Nvidia Quadro 4000) using OpenCL \cite{pyFAI_gpu}, offloading this processing
+from CPU to GPU, hence leaving resources to other pipelines.
 Subsequent normalization are performed directly using numpy\cite{numpy}.
 The result is saved into a 3-column ASCII file suitable for further processing
 using the \textsc{atsas} tools\cite{atsas} and sent back to BsxCube for
@@ -292,6 +295,7 @@ In accordance with EMBL and ESRF standards, the scattering vector
 $q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
 
 \subsection{Curve merging, background correction and basic analysis}
+\label{SM}
 Data acquisition is usually performed sets of sample and buffer measurements.
 Each sample or background measurment consists of seperate frames (typically 10)
 in order to be able to detect radiation damage and not further interpret data from damaged samples.
@@ -331,66 +335,124 @@ database \cite{ispybb} where they can be accessed via an web interface.
 Figure~\ref{fig:analysis} provides a flow chart of the plugin.
 
 \subsection{Ab initio reconstruction pipeline}
-
+\label{abinitio}
 This pipeline is in charge of recontructing the three dimentionnal model based
 of the \textit{subtracted curve} and is inspired from a preliminary work
-performed at the Diamond Light Source.
-(
-Jun Aishima , Irakli Sikharulidze, Conor Lehane, Tobias Richter, Karl Levik,
-Matthew Gerring, James Doutch, Mark Tully, Katsuaki Inoue, Nick Terrill, Paul Gibbons, Alun Ashton
-Integration of Data Acquisition and Data Analysis for SAXS Experiments at Diamond Light Source
-American crystallographic Association, May 14-18 2014, session M010.3
-)
+performed at the Diamond Light Source \cite{sas_piepline}.
 
-It runs multiple instances of \textit{dammif} in parallel (8 by default) to get
-multiple models \cite{dammif}.
-After a first round of outlier rejection based on the goodness of fit ($R_{f}$) and the
-$\sqrt{\chi^{2}}$  where the threshold is the mean plus a two standard
+It runs multiple instances of \textit{dammif} in parallel (8 or 16 by default)
+to get multiple models \cite{dammif}, taking benefit of the multithreading
+environament of EDNA.
+After a first round of outlier rejection based on the goodness of fit ($R_{f}$)
+and the $\chi^{2}$  where the threshold is the mean plus a two standard
 deviations, only $N$ valid models remains.
 
-
-
 All $N$ remaining models are superimposed two by two using
-\textit{supcomb}\cite{supcomb}, launching $N*(N-1)/2$ processes in parallel.
-The table containing the normalized spatial discrepancy (NSD) is then generated
-(see figure \ref{fgr:nsd}), explaining which model is the nearest from all other
-valid models. This model is called the reference model amd all other valid
-models are re-oriented and aligned on the reference one. All models wiht an NSD higher than the mean plus one stadard deviation are discarded.
-%Figure \ref{fgr:nsd} shows the plot which is generated to
-%explain to the user why certain models are discarded.
+our open source implementation of \textit{supcomb}, which is available freely
+(MIT license)) as part of the freesas package \cite{freesas}.  
+Former version of the pipeline have been using the original 
+\textit{supcomb} \cite{supcomb} program from \textsc{atsas} by launching
+$N*(N-1)/2$ processes in parallel within the EDNA framework. 
+It turned out to be
+more advantagous (in term of speed) to read all models from disk only once and
+perform the all aligement in memory. 
+Only distance calculation (actually normalized spatial discrepancy, NSD) have
+been optimized using a binary extension (Cython parallel code), all other
+transformation rely on NumPy \cite{numpy} code and the geomtric optimization is
+performed using the simplex minimizer provided by SciPy \cite{scipy}.
 
+The table containing the NSD is then generated
+(see figure \ref{fgr:nsd}), explaining which model is the nearest from all other
+valid models. This model is called the reference model and all other valid
+models are re-oriented and aligned on the reference one. 
+All models with an NSD higher than the mean plus one stadard deviation are
+discarded.
 
 All valid models are merged using \textit{damaver}\cite{damaver},\textit{damstart} and
 \textit{damfilt} and finally refined using \textit{dammin}\cite{dammin}.
 This last step is pretty slow an lasts usually for dozens of minutes and is
-aborted after half an hour by EDNA as it often does not finish. All results are
-uploaded to the ISPyB database where they can also be visualized. Figure~\ref{fig:modeling} provides a flow chart of the plugin.
+aborted after half an hour by EDNA as it often does not finish. 
+All results are uploaded to the ISPyB database where they can also be
+visualized. Figure~\ref{fig:modeling} provides a flow chart of the plugin.
 
 
 \section{Data analysis pipeline in HPLC mode}
-While the sample changer allows a high throuput of samples, it requires homogenous samples which do not degrade. Protein samples often are intrinsically heterogenous. For example, constituents of a complex might be present in excess or proteins might aggregate. On approach to this issue is to purify the sample as shortly as possbile before the measurement by directly collect data on the eluent a size exclusion system (SEC-SAXS or HPLC mode) \cite{SECBM29,otherSEC}. AT BM29 we continously collect 2D-diffraction frames throughout the SEC purification run at a rate of 0.5 to 1 Hz (depending on the synchrotron filling mode and the duration of the SEC purification), resulting in up to a few thousand frames. While we know that the first few frames are acquired on buffer, the sample composition for later frames is not known \textit{a priori}. The result of a SEC-SAXS experiement can be very complex. Our automatic analysis provides data reduction and basic analysis for every individual frame. In addition, it uses this information to try to identify regions in the chromatogram which correspond to one species and merges frames from these regions for a better signal to noise ratio. The goal of this proceure is not to produce an indealized curve of an individual species but to give a hint on the overall data quality as soon as possible.
+While the sample changer allows a high throuput of samples, it requires
+homogenous samples which do not degrade. 
+Protein samples often are intrinsically heterogenous. 
+For example, constituents of a complex might be present in excess or proteins
+might aggregate.  
+On approach to this issue is to purify the sample as shortly as possbile before 
+the measurement by directly collect data on the eluent a size exclusion system 
+(SEC-SAXS or HPLC mode) \cite{SECBM29, otherSEC}. 
+At the BioSaxs beamline (BM29) we continously collect 2D-diffraction frames
+throughout the SEC purification run at a rate of 0.5 to 1 Hz 
+(depending on the synchrotron filling mode and the duration of the SEC purification), 
+resulting in up to a few thousand frames. 
+While we know that the first few frames are acquired on buffer, the sample composition 
+for later frames is not known \textit{a priori}. 
+The result of a SEC-SAXS experiement can be very complex. 
+Our automatic analysis provides data reduction and basic analysis for every
+individual frame. 
+In addition, it uses this information to try to identify regions in the
+chromatogram which correspond to one species and merges frames from these
+regions for a better signal to noise ratio. 
+The goal of this proceure is not to produce an indealized curve of an individual
+species but to give a hint on the overall data quality as soon as possible.
 
 \subsection{HPLC frame pipeline}
 
-This pipeline is triggered for every frame in HPLC mode. It integrates each frame using the Azimuthal integration pipeline and compares the result to the first frame using \textit{datcmp} from the \textsc{atsas} package. The frame is then classified as buffer, sample, or ``in between''. The first time a frame in a HPLC run is not classified as buffer, all previous frames are averaged into a ``run buffer''.
-For any frame classified as sample, the ``run buffer'' is subtracted, Guinier analysis is performed (with \textit{autorg} from the \textsc{atsas} package), providing a radius of gyration and the forward scattering intensity, and correlated volume it calculated in order to estimate the mass \cite{RamboTainerNature2013}. In addition, the plugin also calculates the total scattering intensity of any frame, regardless of its classification. \\
-The plugin can operate at about 1 Hz, so that the integrated frames can be displayed in the data acquisition software with minimal delays. It also directly returns the total scattering intensity to the data acquistion software so that it can display a chromatrogramm.
+This pipeline is triggered for every frame in HPLC mode. 
+It integrates each frame using the Azimuthal integration pipeline (see \ref{AI})
+and compares the result to the first frame using \textit{datcmp} from the
+\textsc{atsas} package. 
+The frame is then classified as buffer, sample, or ``in between''. 
+The first time a frame in a HPLC run is not classified as buffer, all previous
+frames are averaged into a ``run buffer''. 
+For any frame classified as sample, the ``run buffer'' is subtracted, Guinier
+analysis is performed (with \textit{autorg} from the \textsc{atsas} package), 
+providing a radius of gyration and the forward scattering intensity, and
+correlated volume it calculated in order to estimate the mass
+\cite{RamboTainerNature2013}. 
+In addition, the plugin also calculates the total scattering intensity of any
+frame, regardless of its classification.
+The plugin can operate at about 1 Hz, so that the integrated frames can be
+displayed in the data acquisition software with minimal delays. 
+It also directly returns the total scattering intensity to the data acquistion
+software so that it can display a chromatrogramm. 
 
-Any frame very dissimilar (there is a second threshold) to the first/buffer
-(check?) is considered as a sample frame hence the buffer signal is subtracted
-and Guinier analysis is performed, providing a radius of giration and an
-intensity of scattering at q=0.
+Any frame very dissimilar to the first (using a second threshold) is considered
+as a sample frame hence the averaged buffer signal is subtracted and Guinier
+analysis is performed, providing a radius of giration and an intensity of
+scattering at q=0. 
 
 \subsection{HPLC flush}
 When the HPLC experiment ends (or is aborted) a specific plugin is launched to
-finish the processing of the experiment as one SEC-SAXS run. The plugin uses the results of \textit{autorg} to locate peaks using continous wave transforamtion as implemented in Scipy on the forward scattering \cite{cwt,scipy}, and then merges all individual curves around a local maxima of the forward scattering with similar radius of gyration. All processing results from the \textit{HPLC frame pipline} and the results of the peak fiding are
-saved into a single HDF5 which is uploaded to the ISPyB database at the end of the processing. In addition, the plugin creates figures (in .png and in .svg format) of the total scattering, forward scattering and radius of gyration \textit{vs.} frame number. Figure \ref{HPLC} shows the result of an HPLC
-experiment where one main peak and a trailing shoulder is identified.
-On all merged files are further analysed by the \textit{SAXS analysis} and the \textit{Ab initio reconstruction pipeline} plugins from the sample changer pipeline.
+finish the processing of the experiment as one SEC-SAXS run. 
+The plugin uses the results of \textit{autorg} to locate peaks using continous
+wave transforamtion as implemented in Scipy on the forward scattering
+\cite{cwt, scipy}, and then merges all individual curves around a local maxima
+of the forward scattering with similar radius of gyration. 
+All processing results from the \textit{HPLC frame pipline} and the results of 
+the peak fiding are saved into a single HDF5 which is uploaded to the ISPyB
+database at the end of the processing. 
+In addition, the plugin creates figures (in .png and in .svg format) of the
+total scattering, forward scattering and radius of gyration \textit{vs.} frame
+number. 
+Figure \ref{HPLC} shows the result of an HPLC experiment where one main peak and
+a trailing shoulder is identified. 
+On all merged files are further analysed by the \textit{SAXS analysis}
+(\ref{SM}) and the \textit{Ab initio reconstruction pipeline}
+(\ref{abinitio}) plugins from the sample changer pipeline.
 
 \section{Offline data analysis}
-In case offline processing is required, e.g. when when one of the parameters for the azimutal integration of previsously processed data needs to be adjusted, several python scripts for starting subpipelines are avaible. The scripts run the pipeline on files specified via command line   Describes reprocess mode
-explains why cannot be distributed (licensing, difficulty to install)
+In case offline processing is required, e.g. when when one of the parameters for
+the azimutal integration of previsously processed data needs to be adjusted, 
+several Python scripts for starting subpipelines are avaible. 
+The scripts run the pipeline on files specified via command line
+
+TODO:
+ Describes reprocess mode explains why cannot be distributed (licensing, difficulty to install)
 
 \section{Hardware used}
 Two computers with GPU computing capabilities (Nvidia Quadro 4000) are dedicated
@@ -402,13 +464,26 @@ As the \textem{ab initio} reconstruction pipeline lasts of dozens of minutes
 the azimuthal integration pipeline, which needs the lowest latency, is run on
 the other computer.
 
-
 \section{Practical example}
-To illustrate the functionality of the processing pipeline we show data acquired on a mutant of the helicase protein D5TVE from  of Vaccinia virus (VACV). Data was acquired as both a dilution series using the sample changer and using SEC-SAXS. Results are shown in figures \ref{fig:HPLC} and \ref{fig:exp}. The HPLC run shows a strong main peak with extended tails both sides. Direct comparison of the different concentrations from the dilution series onl shows differences at very small $q$ (figure \ref{fig:exp}a)), but direct comparison of the highest concentration to the merged data from the main peak from the HPLC run shows only small differences (figure \ref{fig:exp}b).
-The automatic processing results, especially the trends in $R_{G}$  clearly show the presence of concentration effects in the samples measured with the sample changer. In this particular case it is clear that the quality of the data collected with SEC-SAXS are of superior quality and that only htey should be considered for further processing.
+To illustrate the functionality of the processing pipeline we show data acquired
+on a mutant of the helicase protein D5TVE from  of Vaccinia virus (VACV). 
+Data was acquired as both a dilution series using the sample changer and using
+SEC-SAXS.  
+Results are shown in figures \ref{fig:HPLC} and \ref{fig:exp}. 
+The HPLC run shows a strong main peak with extended tails both sides. 
+Direct comparison of the different concentrations from the dilution series only
+shows differences at very small $q$ (figure \ref{fig:exp}a)), but direct comparison 
+of the highest concentration to the merged data from the main peak from the HPLC run 
+shows only small differences (figure \ref{fig:exp}b).
+The automatic processing results, especially the trends in $R_{G}$  clearly show the 
+presence of concentration effects in the samples measured with the sample changer. 
+In this particular case it is clear that the quality of the data collected with SEC-SAXS 
+are of superior quality and that only they should be considered for further
+processing.
 
 \section{Conclusion}
 
+TODO
 
 \section{Conclusions and Outlook}
 offline processing interface, workflows
@@ -417,10 +492,9 @@ offline processing interface, workflows
 developing the original offline reprocessing tools, Peter Boesecke for the
 original azimuthal integration procedure, Olof Svensson for the development of
 EDNA, Irakli Sikharulidze for the original version of the \textit{ab initio}
-modeling pipeline, Alexey Kikhney, Daniel Franke and Dmitry for the \textsc{atsas}
-package and support in its implementation and Staffan Ohlsson and Matias
+modeling pipeline, Alexey Kikhney, Daniel Franke and Dmitry Svergun for the
+\textsc{atsas} package and support in its implementation and Staffan Ohlsson and Matias
 Guijarro for integration with the data acquisition software.}
-
 
 \begin{references}
 
@@ -454,7 +528,7 @@ http://github.com/pyFAI and https://fable.sf.net.
 Some \textsc{atsas} parts have been implemented in Python to offer a better
 integration into the processing pipelines (by avoiding the fork of many
 processes): \textit{dataver}, \textit{damaver}, \ldots  and \textit{supcomb}
-are available as part of the \textsc{freesas} package whhich re-implements the
+are available as part of the FreeSAS package which re-implements the
 algorithms in a MIT type license. Freesas is available on github at
 https://github.com/kif/freesas but without garanteeing any
 numerical equivalence with the reference implementation.

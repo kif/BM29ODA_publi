@@ -238,6 +238,31 @@ Kieffer and T Martin and E Papillon and M Salomé and V A Solé},
   year={2013},
   abstract={2D area detectors like CCD or pixel detectors have become popular in the last 15 years for diffraction experiments (e.g. for WAXS, SAXS, single crystal and powder diffraction (XRPD)). These detectors have a large sensitive area of millions of pixels with high spatial resolution. The software package pyFAI has been designed to reduce SAXS, WAXS and XRPD images taken with those detectors into 1 D curves (azimuthal integration) usable by other software for in-depth analysis such as Rietveld refinement, or 2 D images (a radial transformation named caking ). As a library, the aim of pyFAI is to be integrated into other tools like PyMca or EDNA with a clean pythonic interface. However pyFAI features also command line tools for batch processing, converting data into q-space (q being the momentum transfer) or 2 ? -space ( ? being the Bragg angle) and a calibration graphical interface for optimizing the geometry of the experiment using the Debye-Scherrer rings of a reference sample. PyFAI shares the geometry definition of SPD but can directly import geometries determined by the software FIT2D. PyFAI has been designed to work with any kind of detector and geometry (transmission or reflection) and relies on FabIO, a library able to read more than 20 image formats produced by detectors from 12 different manufacturers. During the transformation from cartesian space (x,y) to polar space (2?, ?), both local and total intensities are conserved in order to obtain accurate quantitative results. Technical details on how this integration is implemented and how it has been ported to native code and parallelized on graphic cards are discussed in this paper.}
 }
+
+@inproceedings{pyFAI_gpu,
+author = {Kieffer, J. and Ashiotis, G.}, 
+title = {PyFAI: a Python library for high performance azimuthal integration on GPU}, 
+booktitle = {PROC. OF THE 7th EUR. CONF. ON PYTHON IN SCIENCE (EUROSCIPY 2014)}, 
+year = 2014,
+url = {http://arxiv.org/pdf/1412.6367.pdf}
+}
+
+@article{pyFAI_2015,
+author = "Ashiotis, Giannis and Deschildre, Aurore and Nawaz, Zubair and Wright, Jonathan P. and Karkoulis, Dimitrios and Picca, Fr{\'{e}}d{\'{e}}ric Emmanuel and Kieffer, J{\'{e}}r{\^{o}}me",
+title = "{The fast azimuthal integration Python library: {\it pyFAI}}",
+journal = "Journal of Applied Crystallography",
+year = "2015",
+volume = "48",
+number = "2",
+pages = "510--519",
+month = "Apr",
+doi = {10.1107/S1600576715004306},
+url = {http://dx.doi.org/10.1107/S1600576715004306},
+abstract = {{\it pyFAI} is an open-source software package designed to perform azimuthal integration and, correspondingly, two-dimensional regrouping on area-detector frames for small- and wide-angle X-ray scattering experiments. It is written in Python (with binary submodules for improved performance), a language widely accepted and used by the scientific community today, which enables users to easily incorporate the {\it pyFAI} library into their processing pipeline. This article focuses on recent work, especially the ease of calibration, its accuracy and the execution speed for integration.},
+keywords = {powder diffraction, small-angle X-ray scattering, geometry calibration, data reduction, image analysis, GPU programming, Python, computer programs},
+}
+
+
 @ARTICLE{Lowe04,
     author = {David G. Lowe},
     title = {Distinctive Image Features from Scale-Invariant Keypoints},
@@ -370,6 +395,7 @@ eprint = {http://pubs.acs.org/doi/pdf/10.1021/ac200559r}
     year = {2007-2013},
     url = {http://docs.nvidia.com/cuda/cufft/}
 }
+
 @article{supcomb,
 author = "Kozin, M. B. and Svergun, D. I.",
 title = "{Automated matching of high- and low-resolution structural models}",
@@ -382,6 +408,7 @@ month = "Feb",
 doi = {10.1107/S0021889800014126},
 url = {http://dx.doi.org/10.1107/S0021889800014126},
 }
+
 @article{damaver,
 author = "Volkov, Vladimir V. and Svergun, Dmitri I.",
 title = "{Uniqueness of {\it ab initio} shape determination in small-angle scattering}",
@@ -394,12 +421,41 @@ month = "Jun",
 doi = {10.1107/S0021889803000268},
 url = {http://dx.doi.org/10.1107/S0021889803000268},
 }
+
 @article{damin,
-ournal = {Biophysical Journal},
+journal = {Biophysical Journal},
 volume = 76,
 month = "June",
 year = 1999, 
 pages = "2879--2886",
 title = "Restoring Low Resolution Structure of Biological Macromolecules from Solution Scattering Using Simulated Annealing",
-author = "Svergun, D. I."
+author = "Svergun, D. I.",
+}
+
+@book{pyqt,
+author = {Summerfield, Mark},
+year = {2007},
+month = {October},
+day = {28},
+title = {Rapid GUI Programming with Python and Qt},
+publisher = {Prentice Hall},
+edition = {first},
+pages = {648},
+isbn = {978-0-13-235418-9},
+}
+
+@inproceedings{sas_piepline, 
+year = 2014,
+title = {Integration of Data Acquisition and Data Analysis for SAXS Experiments at Diamond Light Source},
+booktitle = {American crystallographic Association},
+key = {M010.3},
+month = {May},
+author = {Aishima, J. and Sikharulidze, I and  Lehane, C. and Richter, T. and Levik, K. and Gerring, M. and  Doutch, J. and Tully, M. and Inoue, K. and Terrill, N. and  Gibbons, P. and Ashton, A. },
+}
+
+@misc{freesas,
+  author =   {Bonamis, G. and Kieffer, J},
+  title =     {{FreeSAS}: Open source small angle scattering tools for {Python}},
+  year =        {2015},
+  url = "https://github.com/kif/freesas"
 }
