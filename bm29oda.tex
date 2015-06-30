@@ -289,7 +289,7 @@ The azimuthal integration calculation is performed on a dedicated graphics card
 from CPU to GPU, hence leaving resources to other pipelines.
 Subsequent normalization are performed directly using numpy\cite{numpy}.
 The result is saved into a 3-column ASCII file suitable for further processing
-using the \textsc{atsas} tools\cite{atsas} and sent back to BsxCube for
+using the \textsc{atsas} tools\cite{ATSAS1} and sent back to BsxCube for
 live display.
 In accordance with EMBL and ESRF standards, the scattering vector
 $q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
@@ -338,7 +338,7 @@ Figure~\ref{fig:analysis} provides a flow chart of the plugin.
 \label{abinitio}
 This pipeline is in charge of recontructing the three dimentionnal model based
 of the \textit{subtracted curve} and is inspired from a preliminary work
-performed at the Diamond Light Source \cite{sas_piepline}.
+performed at the Diamond Light Source \cite{DiamondSE}.
 
 It runs multiple instances of \textit{dammif} in parallel (8 or 16 by default)
 to get multiple models \cite{dammif}, taking benefit of the multithreading
@@ -384,7 +384,7 @@ For example, constituents of a complex might be present in excess or proteins
 might aggregate.  
 On approach to this issue is to purify the sample as shortly as possbile before 
 the measurement by directly collect data on the eluent a size exclusion system 
-(SEC-SAXS or HPLC mode) \cite{SECBM29, otherSEC}. 
+(SEC-SAXS or HPLC mode) \cite{SECPaper2012, otherSEC}. 
 At the BioSaxs beamline (BM29) we continously collect 2D-diffraction frames
 throughout the SEC purification run at a rate of 0.5 to 1 Hz 
 (depending on the synchrotron filling mode and the duration of the SEC purification), 
@@ -449,20 +449,19 @@ On all merged files are further analysed by the \textit{SAXS analysis}
 In case offline processing is required, e.g. when when one of the parameters for
 the azimutal integration of previsously processed data needs to be adjusted, 
 several Python scripts for starting subpipelines are avaible. 
-The scripts run the pipeline on files specified via command line
+Those tools are part of the EDNA installation and just instanciate the needed
+plugin and run it with the parameter description file which has been modified
+accordingly. 
+For HPLC mode and curve-merging, there are specific tools to reprocess complete
+datasets if needed.
 
-TODO:
- Describes reprocess mode explains why cannot be distributed (licensing, difficulty to install)
-
-\section{Hardware used}
-Two computers with GPU computing capabilities (Nvidia Quadro 4000) are dedicated
-for online data analysis on the biosaxs bemline, they are independent and
-feature the same software installation hence providing redondancy (if one
-fails).
-As the \textem{ab initio} reconstruction pipeline lasts of dozens of minutes
-(due to the execution of DAMMIN), it is run on the most powerful computer while
-the azimuthal integration pipeline, which needs the lowest latency, is run on
-the other computer.
+The drawback of this approach is to rely on the EDNA infrastructure which is
+non trivial to install and even difficult to customize (path of the
+\textsc{atsas} executable and licensing issue, number of cores, GPU
+configration, timeouts for any part of pipelines, \ldots). 
+The availability of a spare computer on the beamline dedicated for offline
+processing removes this need, hence reprocessing never interfers with ongoing
+acquisitions.
 
 \section{Practical example}
 To illustrate the functionality of the processing pipeline we show data acquired
@@ -496,17 +495,13 @@ modeling pipeline, Alexey Kikhney, Daniel Franke and Dmitry Svergun for the
 \textsc{atsas} package and support in its implementation and Staffan Ohlsson and Matias
 Guijarro for integration with the data acquisition software.}
 
-\begin{references}
-
 \bibliographystyle{iucr}
 \bibliography{biblio}
-
-\end{references}
 
 \appendix
 \section{Software distribution and licensing}
 
-All software developped for online data analysis at the BioSaxs beam-line is
+All software developed for online data analysis at the BioSaxs beam-line is
 open-source.
 Nevertheless it relies on the \textsc{atsas} package which, while free for
 academic use, is neither open-source, nor redistributable.
@@ -534,7 +529,7 @@ https://github.com/kif/freesas but without garanteeing any
 numerical equivalence with the reference implementation.
 
 Finally the other tools of the Python scientific stack (Numpy, scipy,
-matplotlib) are licenced under BSD license.
+matplotlib) are licensed under BSD license.
 
 \begin{figure}
 \centering
