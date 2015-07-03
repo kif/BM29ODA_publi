@@ -91,7 +91,7 @@ relies on highly automated data acquisition.
 Data reduction and primary analysis for bioSAXS experiments consists of a
 well-defined series of individual tasks whose automation allows easy first
 assessment of the quality of collected data.
-This articel describes both the logic and the technical implementation of the
+This article describes both the logic and the technical implementation of the
 automated processing pipeline for bioSAXS data at the ESRF BM29 beam-line using
 the EDNA framework.
 \end{abstract}
@@ -111,7 +111,7 @@ This has not only resulted in the construction of new dedicated
 synchrotron beam-lines, such as BM29 at ESRF, P12 at EMBL Hamburg or B21 at
 Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward new
 developments in both beam-line instrumentation and sample handling.
-Examples for these development are the develoment of dedicated sample changers
+Examples for these developments are the develoment of dedicated sample changers
 \cite{SCPaper} or the integration of size exclusion chromatography (SEC) systems
 into existing beam-lines to enable on-line size exclusion \cite{SECPaper2012}.
 
@@ -133,12 +133,12 @@ large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
 Our goal was a robust set of online autoprocessing pipelines for bioSAXS data
 for data reduction, primary analysis and \textit{ab initio} modeling.
 The additional needs of \textsc{flexibility} and elimination of
-direct user interaction, lead us to develop a pipelines for both sample changer and HPLC mode within the
+direct user interaction, lead us to develop a pipeline for both sample changer and HPLC mode within the
 EDNA framework \cite{edna}.
 These pipelines use pyFAI for the azimutal integration \cite{pyFAI} and tools
 from the \textsc{atsas} package \cite{ATSAS1, ATSAS2} for analysis and modeling.
 Some parts of the \textsc{atsas} package have been re-implemented as a Python
-library (named FreeSAS) for a better integration into the Python-based piepline. 
+library (named FreeSAS) for a better integration into the Python-based pipeline. 
 All data analysis is smoothly integrated with the beamline control system
 (BsxCube) and the ISPyB database.
 
@@ -156,7 +156,7 @@ of background and sample measurements in sample changer mode.
 Data acquisition at the ESRF-BM29 beamline is controled via the BsXCube
 graphical interface, written in Python/Qt4 \cite{pyqt}.
 BsXCube is composed of control-objects which communicate with other beam-line
-components (i.e. detector, motors, sample changer, data analyis server\ldots)
+components (i.e. detector, motors, sample changer, data analysis server\ldots)
 via the tango protocol\cite{tango}.
 
 %\subsection{Data analysis server}
@@ -301,11 +301,11 @@ Each sample or background measurment consists of seperate frames (typically 10)
 in order to be able to detect radiation damage and not further interpret data from damaged samples.
 The \textit{SmartMerge} pipeline is triggered at the end of each measurement
 and is responsible for evaluating the similarity of different scattering
-patters, using the \textit{datcmp} tool from \textsc{atsas} and merging all frames
+patterns, using the \textit{datcmp} tool from \textsc{atsas} and merging all frames
 similar to the first and propagate the associated metadata.
 A flow diagramm is provided in figure~\ref{fig:smart}.
 All curve comparisons are performed in parallel on modern multicore
-computers thanks to EDNA multi-threded environment.
+computers thanks to EDNA multi-threaded environment.
 
 Subsequently, the \textit{SmartMerge} calls the \textit{autoSub} plugin, which
 checks for the buffer-sample-buffer sequence and determines the optimal buffer
@@ -365,7 +365,7 @@ The table containing the NSD is then generated
 (see figure \ref{fgr:nsd}), explaining which model is the nearest from all other
 valid models. This model is called the reference model and all other valid
 models are re-oriented and aligned on the reference one. 
-All models with an NSD higher than the mean plus one stadard deviation are
+All models with a NSD higher than the mean plus one standard deviation are
 discarded.
 
 All valid models are merged using \textit{damaver}\cite{damaver},\textit{damstart} and
@@ -382,7 +382,7 @@ homogenous samples which do not degrade.
 Protein samples often are intrinsically heterogenous. 
 For example, constituents of a complex might be present in excess or proteins
 might aggregate.  
-On approach to this issue is to purify the sample as shortly as possbile before 
+On approach to this issue is to purify the sample as shortly as possible before 
 the measurement by directly collect data on the eluent a size exclusion system 
 (SEC-SAXS or HPLC mode) \cite{SECPaper2012, otherSEC}. 
 At the BioSaxs beamline (BM29) we continously collect 2D-diffraction frames
@@ -397,7 +397,7 @@ individual frame.
 In addition, it uses this information to try to identify regions in the
 chromatogram which correspond to one species and merges frames from these
 regions for a better signal to noise ratio. 
-The goal of this proceure is not to produce an indealized curve of an individual
+The goal of this proceure is not to produce an idealized curve of an individual
 species but to give a hint on the overall data quality as soon as possible.
 
 \subsection{HPLC frame pipeline}
@@ -430,7 +430,7 @@ scattering at q=0.
 When the HPLC experiment ends (or is aborted) a specific plugin is launched to
 finish the processing of the experiment as one SEC-SAXS run. 
 The plugin uses the results of \textit{autorg} to locate peaks using continous
-wave transforamtion as implemented in Scipy on the forward scattering
+wave transformation as implemented in Scipy on the forward scattering
 \cite{cwt, scipy}, and then merges all individual curves around a local maxima
 of the forward scattering with similar radius of gyration. 
 All processing results from the \textit{HPLC frame pipline} and the results of 
