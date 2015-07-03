@@ -35,7 +35,7 @@
      % The title of the paper. Use \shorttitle to indicate an abbreviated title
      % for use in running heads (you will need to uncomment it).
 
-\title{Online data analysis at ESRF BiosSaxs beamline}
+\title{Online data analysis at ESRF BiosSaxs beam-line}
 %\shorttitle{Short Title}
 
      % Authors' names and addresses. Use \cauthor for the main (contact) author.
@@ -97,50 +97,59 @@ the EDNA framework.
 \end{abstract}
 
 
-     %-------------------------------------------------------------------------
-     % The main body of the paper
-     %-------------------------------------------------------------------------
-     % Now enter the text of the document in multiple \section's, \subsection's
-     % and \subsubsection's as required.
-
 \section{Introduction}
 The popularity of small-angle X-ray scattering on proteins and nucleic acids in
-solution (bioSAXS) to resolve their three-dimensional shape is continously
+solution (bioSAXS) to resolve their three-dimensional shape is continuously
 growing \cite{Graewert2013,Hura2009,Reyes2014}.
 This has not only resulted in the construction of new dedicated
 synchrotron beam-lines, such as BM29 at ESRF, P12 at EMBL Hamburg or B21 at
 Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward new
 developments in both beam-line instrumentation and sample handling.
+<<<<<<< HEAD
 Examples for these developments are the develoment of dedicated sample changers
+=======
+Examples for these developments are the new dedicated sample changers
+>>>>>>> upstream/master
 \cite{SCPaper} or the integration of size exclusion chromatography (SEC) systems
-into existing beam-lines to enable on-line size exclusion \cite{SECPaper2012}.
+into existing beam-lines to ensure the monodispesity of the sample a a given
+time \cite{SECPaper2012}.
 
-The \textit{BioSaxs} beam-line, BM29 at synchrotron ESRF, is a small angle X-ray
-scattering beamline dedicated to structural biology \cite{BM29paper}.
-Currently, the beamline provides two main experimental modes: The use of the
+The \textit{BioSaxs} beam-line, BM29, at synchrotron ESRF, is a small angle
+X-ray scattering beam-line dedicated to structural biology \cite{BM29paper}.
+Currently, the beam-line provides two main experimental modes: The use of the
 bioSAXS sample changer to collect data on alternating buffer\/sample\/buffer
 sequences (so called: sample changer mode) and an online HPLC system for
 SEC-SAXS experiments (called HPLC mode).
 In both modes, data are typically collected at a rate of one frame per second
 (1 fps).
-In order to estimate the quality and usefulness it is therefore necessary to
-robustly process data as quickly and fast as possible.
+In order to estimate the quality and usefulness of the acquired data, it is
+necessary process them in a quick and to robustly way, compatible with the
+throughput of the beam-line.
 
 Available processing tools for SAXS data which support online processing of
 large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
 \cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and
-\textit{SASFLOW} \cite{X33P,P12}.  \textit{XRDUA}, \textit{EDNA}, \ldots
-Our goal was a robust set of online autoprocessing pipelines for bioSAXS data
-for data reduction, primary analysis and \textit{ab initio} modeling.
+\textit{SASFLOW} \cite{X33P,P12},  \textit{XRDUA} \cite{XRDUA}, \textit{EDNA}
+, \ldots 
+Our goal is robust set of online autoprocessing pipelines
+for bioSAXS data ranging from data reduction, primary analysis and \textit{ab
+initio} modeling.
 The additional needs of \textsc{flexibility} and elimination of
 direct user interaction, lead us to develop a pipeline for both sample changer and HPLC mode within the
 EDNA framework \cite{edna}.
-These pipelines use pyFAI for the azimutal integration \cite{pyFAI} and tools
+These pipelines use pyFAI for the azimuthal integration \cite{pyFAI} and tools
 from the \textsc{atsas} package \cite{ATSAS1, ATSAS2} for analysis and modeling.
 Some parts of the \textsc{atsas} package have been re-implemented as a Python
+<<<<<<< HEAD
 library (named FreeSAS) for a better integration into the Python-based pipeline. 
 All data analysis is smoothly integrated with the beamline control system
 (BsxCube) and the ISPyB database.
+=======
+library (named FreeSAS \cite{freesas}) for a better integration into the
+Python-based piepline.
+All data analysis is smoothly integrated with the beam-line control system
+(BsXCube) and the ISPyBB \cite{ISPYBB} database.
+>>>>>>> upstream/master
 
 \section{Technical background}
 
@@ -153,7 +162,7 @@ of background and sample measurements in sample changer mode.
 
 
 \subsection{Experiment control}
-Data acquisition at the ESRF-BM29 beamline is controled via the BsXCube
+Data acquisition at the ESRF-BM29 beam-line is controlled via the BsXCube
 graphical interface, written in Python/Qt4 \cite{pyqt}.
 BsXCube is composed of control-objects which communicate with other beam-line
 components (i.e. detector, motors, sample changer, data analysis server\ldots)
@@ -167,8 +176,7 @@ via the tango protocol\cite{tango}.
 
 
 \subsection{EDNA}
-EDNA is a plugin-based framework to build pipelines for
-data-analysis.
+EDNA is a plugin-based framework to build pipelines for data-analysis.
 The basic idea behind EDNA is to have plugins which are either responsible for the execution
 of a task or an external process (called \textit{execution plugins}) or in
 charge of launching and managing other plugins, either sequentially or in
@@ -202,12 +210,12 @@ of the computing power available within the single computer.
 
 Once finished, any EDNA job emits a tango-event to announce the results are
 available with the status: success or failure.
-The data acquistion software, can then retrieve the result
+The data acquisition software, can then retrieve the result
 of the processing, for example the 1D integrated scattering curve and
 display it (without reading it from disk).
-This architecture allows to start processing for indiviual images or
-display curves instantaneously without polling the shared filesystem.
-Indeed, synchronizaton of shared filesystems across the network
+This architecture allows to start processing for individual images or
+display curves instantaneously without polling the shared file-system.
+Indeed, synchronization of shared file-systems across the network
 often exhibits delay of multiple seconds.
 
 \subsection{Hardware, software and versions}
@@ -219,7 +227,7 @@ As the \textit{ab initio} reconstruction pipeline lasts of dozens of minutes
 (due to the execution of \textsc{dammin}, it is run on the most powerful
 computer while the azimuthal integration pipeline, which needs the lowest latency, is run on
 the small computer.
-A third computer with similar GPU computing capabilities is available for
+A third computer with similar computing capabilities is available for
 off-line reprocessing, development of pipelines and acts as a spare.
 
 All three computers are running Debian 7 operating system with \textsc{atsas}
@@ -273,7 +281,7 @@ In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
 \label{AI}
 This pipeline is triggered for every single frame acquired, i.e. every second,
 and therefore needs to have the lowest latency possible to display the integrated curve
-in \textit{real time} in the graphical beamline control interface BsxCube.
+in \textit{real time} in the graphical beam-line control interface BsxCube.
 The input data-structure for azimuthal integration contains
 information about the geometry of the experiment, the sample, its concentration
 and the transmitted intensity (I1) as measured on the beam-stop diode for
@@ -385,7 +393,7 @@ might aggregate.
 On approach to this issue is to purify the sample as shortly as possible before 
 the measurement by directly collect data on the eluent a size exclusion system 
 (SEC-SAXS or HPLC mode) \cite{SECPaper2012, otherSEC}. 
-At the BioSaxs beamline (BM29) we continously collect 2D-diffraction frames
+At the BioSaxs beam-line (BM29) we continously collect 2D-diffraction frames
 throughout the SEC purification run at a rate of 0.5 to 1 Hz 
 (depending on the synchrotron filling mode and the duration of the SEC purification), 
 resulting in up to a few thousand frames. 
@@ -459,7 +467,7 @@ The drawback of this approach is to rely on the EDNA infrastructure which is
 non trivial to install and even difficult to customize (path of the
 \textsc{atsas} executable and licensing issue, number of cores, GPU
 configration, timeouts for any part of pipelines, \ldots). 
-The availability of a spare computer on the beamline dedicated for offline
+The availability of a spare computer on the beam-line dedicated for offline
 processing removes this need, hence reprocessing never interfers with ongoing
 acquisitions.
 
