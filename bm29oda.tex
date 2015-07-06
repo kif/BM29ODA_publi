@@ -225,8 +225,8 @@ independent and feature the same software installation.
 
 As the \textit{ab initio} reconstruction pipeline lasts of dozens of minutes
 (due to the execution of \textsc{dammin}, it is run on the most powerful
-computer while the azimuthal integration pipeline, which needs the lowest latency, is run on
-the small computer.
+computer while the azimuthal integration pipeline, which needs the lowest
+latency, is run on the small computer.
 A third computer with similar computing capabilities is available for
 off-line reprocessing, development of pipelines and acts as a spare.
 
@@ -257,7 +257,8 @@ Eluted peaks were analyzed by SDS-PAGE and stained with InstantBlue (Expedeon).
 
 \section{Data analysis pipeline in sample changer mode}
 
-The sample changer allows a high throughput of different samples.
+The sample changer allows a high throughput of different samples (\~3
+mn/sample).
 Before and after measuring a sample, a background measurement using its
 corresponding buffer is performed.
 If the buffer of a sample is the same as the one of the preceding sample, the
@@ -272,8 +273,8 @@ The following steps for data reduction and analysis are required:
 \begin{enumerate}
 \item the integration of an individual frame,
 \item the creation of a background corrected sample curve,
-\item basic analysis of the sample curve (guinier plots, and other invariants)
-\item \textit{ab-initio} modeling based on the basic analyis.
+\item basic analysis of the sample curve (Guinier plots, and other invariants)
+\item \textit{ab-initio} modeling based on the basic analysis.
 \end{enumerate}
 In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
 
@@ -288,14 +289,14 @@ and the transmitted intensity (I1) as measured on the beam-stop diode for
 normalization, etc.
 To cope with the requested speed (up to 10 frames per second), this pipeline
 has been optimized and simplified to the maximum.
-It relies on the FabIO\cite{fabio} package for image reading (from NFS mounted disks) and
-pyFAI\cite{pyFAI} for azimuthal integration.
-As the images are acquired with a pixel detector (Pilatus 1M), the error can be
-assumed to be Poissonian and is integrated as such.
+It relies on the FabIO\cite{fabio} package for image reading (from NFS-mounted
+disks) and pyFAI\cite{pyFAI} for azimuthal integration.
+As the images are acquired with a pixel detector (Pilatus 1M from Dectris), the
+error can be assumed to be Poissonian and is integrated as such.
 The azimuthal integration calculation is performed on a dedicated graphics card
 (Nvidia Quadro 4000) using OpenCL \cite{pyFAI_gpu}, offloading this processing
 from CPU to GPU, hence leaving resources to other pipelines.
-Subsequent normalization are performed directly using numpy\cite{numpy}.
+Subsequent normalization are performed directly using NumPy\cite{numpy}.
 The result is saved into a 3-column ASCII file suitable for further processing
 using the \textsc{atsas} tools\cite{ATSAS1} and sent back to BsxCube for
 live display.
@@ -304,13 +305,15 @@ $q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
 
 \subsection{Curve merging, background correction and basic analysis}
 \label{SM}
-Data acquisition is usually performed sets of sample and buffer measurements.
-Each sample or background measurment consists of seperate frames (typically 10)
-in order to be able to detect radiation damage and not further interpret data from damaged samples.
+One dataset usually consists of data measured on the sample and
+on the buffer. 
+Each sample or background measurement consists of set of frames
+(typically 10) in order to be able to detect radiation damage 
+(prevents the interpretation of data from damaged samples).
 The \textit{SmartMerge} pipeline is triggered at the end of each measurement
 and is responsible for evaluating the similarity of different scattering
 patterns, using the \textit{datcmp} tool from \textsc{atsas} and merging all frames
-similar to the first and propagate the associated metadata.
+similar to the first and propagate the associated metadata and errors.
 A flow diagramm is provided in figure~\ref{fig:smart}.
 All curve comparisons are performed in parallel on modern multicore
 computers thanks to EDNA multi-threaded environment.
@@ -318,7 +321,8 @@ computers thanks to EDNA multi-threaded environment.
 Subsequently, the \textit{SmartMerge} calls the \textit{autoSub} plugin, which
 checks for the buffer-sample-buffer sequence and determines the optimal buffer
 (see hereafter) and subtracts it from the sample data,  providing the so called
-\textit{subtracted curve} containing only the scattering from the macromolecule.
+\textit{subtracted curve} containing only the scattering from the macromolecule
+of interest.
 If the buffer measured before and after the sample are considered sufficiently
 similar by \textit{datcmp}, the optimal buffer is their average.
 If they differ too much, each of them is subtracted individually from the
