@@ -108,7 +108,7 @@ Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward new
 developments in both beam-line instrumentation and sample handling.
 Examples for this trend are the development of dedicated sample changers
 \cite{SCPaper} or the integration of size exclusion chromatography (SEC) systems
-into existing beam-lines to ensure the monodispesity of the sample a a given
+into existing beam-lines to ensure the monodispersity of the sample at a given
 time \cite{SECPaper2012,SECP12,SECSWING}.
 The \textit{BioSAXS} beam-line, BM29, at the synchrotron ESRF, is a small angle
 X-ray scattering beam-line dedicated to structural biology \cite{BM29paper}.
@@ -119,7 +119,7 @@ buffer-sample-buffer sequences (so called: SC mode) and an online HPLC system
 In both modes, data are typically collected at a rate of one frame per second
 (1 fps).
 In order to estimate the quality and usefulness of the acquired data, it is
-necessary process them in a quick and to robustly way, compatible with the
+necessary to process them in a quick and robust way, compatible with the
 throughput of the beam-line.
 
 Available processing tools for SAXS data which support online processing of
@@ -133,7 +133,7 @@ ESRF \cite{EDNA}.
 Our goal was to develop a robust set of online auto-processing pipelines
 for bioSAXS experiments, including data reduction, primary analysis and
 \textit{ab-initio} modeling  within the EDNA framework. 
-The additional needs for flexibility and minimalization of
+The additional needs for flexibility and minimization of
 direct user interaction, lead us to develop pipelines for both SC and HPLC mode with EDNA.
 These pipelines use pyFAI for azimuthal integration \cite{pyFAI} and tools
 from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modeling.
@@ -223,7 +223,7 @@ All three computers are running Debian 7 operating system with \textsc{atsas}
 
 
 \subsection{Preparation of protein sample and data acquisition}
-All examples of protein data in this manuscript were are based on a deletion construct of 
+All examples of protein data in this manuscript are based on a deletion construct of 
 the D5 protein from vaccinia virus (VACV).
 The sequences of D5R is from the VACV strain Copenhagen (GenBank accession number M35027.1). 
 D5 391-785 was cloned into the pProEx Htb plasmid (Invitrogen),fused to an N-terminal 
@@ -337,8 +337,8 @@ Multiple models are created in order to give a visual indication of the variatio
 reconstruction and to avoid over-interpretation and biased decisions based on
 the models.
 After a first round of outlier rejection based on the goodness of fit ($R_{f}$)
-and the $\chi^{2}$ where the threshold is the mean plus a two standard
-deviations, only $N$ valid models remains.
+and the $\chi^{2}$ where the threshold is the mean plus two standard
+deviations, only $N$ valid models remain.
 
 All $N$ remaining models are superimposed two by two using
 our open source implementation of \textit{supcomb}, which is available freely
@@ -357,7 +357,7 @@ The table containing the NSD is then generated
 (Figure \ref{fgr:nsd}), explaining which model is the nearest from all other
 valid models. This model is called the reference model and all other valid
 models are re-oriented and aligned on the reference one. 
-All models with an NSD higher than the mean plus one standard deviation are
+All models with a NSD higher than the mean plus one standard deviation are
 discarded.
 
 All valid models are merged using \textit{damaver} \cite{damaver},\textit{damstart} and
