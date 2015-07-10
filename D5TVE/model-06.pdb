@@ -1,0 +1,41 @@
+REMARK 265 
+REMARK 265 EXPERIMENT TYPE: THEORETICAL MODELLING
+REMARK 265  METHOD USED TO DETERMINE THE STRUCTURE: AB INITIO SHAPE
+REMARK 265                                          DETERMINATION
+REMARK 265 
+REMARK 265  SOFTWARE USED    : dammif (r3709)
+REMARK 265  SOFTWARE AUTHORS : EMBL Hamburg
+REMARK 265 
+REMARK 265 EXPERIMENTAL DETAILS :
+REMARK 265  Overall number of dummy atoms : 2059
+REMARK 265  Output phase                  : particle
+REMARK 265  Dummy atoms in output phase   : 19
+REMARK 265  Dummy atom radius             :     18.800
+REMARK 265  Dummy atom volume             :  37612.347
+REMARK 265  Total excluded DAM volume     :  0.715E+06
+REMARK 265  Molecular Mass Estimate       :  0.357E+06
+REMARK 265  Phase center                  :    -11.874  -105.114   -12.926
+REMARK 265  Phase radius of gyration      :    134.845
+REMARK 265  Maximum phase diameter        :  0.412E+03
+REMARK 265  Final R-factor                :  0.451E+00
+REMARK 265 
+ATOM      1  CA  ASP B   2      18.800  32.563  -0.000   1.0  20.0 0 2 201
+ATOM      2  CA  ASP B   3     -18.800  32.563  -0.000   1.0  20.0 0 2 201
+ATOM      3  CA  ASP B   4       0.000  21.708  30.700   1.0  20.0 0 2 201
+ATOM      4  CA  ASP B   5     -18.800 -10.854  30.700   1.0  20.0 0 2 201
+ATOM      5  CA  ASP B   6       0.000 -43.417  30.700   1.0  20.0 0 2 201
+ATOM      6  CA  ASP B   7       0.000  65.125  -0.000   1.0  20.0 0 2 201
+ATOM      7  CA  ASP B   8     -18.800  54.271  30.700   1.0  20.0 0 2 201
+ATOM      8  CA  ASP B   9      18.800  54.271  30.700   1.0  20.0 0 2 201
+ATOM      9  CA  ASP B  10     -18.800 -75.979  30.700   1.0  20.0 0 2 201
+ATOM     10  CA  ASP B   1     -37.600-108.542  30.700   1.0  20.0 0 2 201
+ATOM     11  CA  ASP B   2     -18.800-162.813   0.000   1.0  20.0 0 2 201
+ATOM     12  CA  ASP B   3     -18.800-141.104  30.700   1.0  20.0 0 2 201
+ATOM     13  CA  ASP B   4     -18.800-184.521 -30.700   1.0  20.0 0 2 201
+ATOM     14  CA  ASP B   5     -18.800-206.230 -61.401   1.0  20.0 0 2 201
+ATOM     15  CA  ASP B   6     -18.800-227.938 -92.101   1.0  20.0 0 2 201
+ATOM     16  CA  ASP B   7     -18.800-271.355 -61.401   1.0  20.0 0 2 201
+ATOM     17  CA  ASP B   8     -37.600-260.500 -92.101   1.0  20.0 0 2 201
+ATOM     18  CA  ASP B   9      -0.000-260.500 -92.101   1.0  20.0 0 2 201
+ATOM     19  CA  ASP B  10      -0.000-303.917 -61.401   1.0  20.0 0 2 201
+TER      20      ASP B   1
