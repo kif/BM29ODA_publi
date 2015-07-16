@@ -43,7 +43,7 @@
      % Use lower-case letters in square brackets to link authors to their
      % affiliations; if there is only one affiliation address, remove the [a].
 
-\author[a]{Martha}{Brennich}
+\author[a]{Martha Elisabeth}{Brennich}
 \cauthor[a]{J\'er\^ome}{Kieffer}{jerome.kieffer@esrf.fr}{}
 \author[a]{Guillaume}{Bonamis}
 \author[a,b]{Alejandro}{De Maria Antolinos}
@@ -116,7 +116,7 @@ Currently, the beamline provides two main experimental modes; use of the
 bioSAXS sample changer to collect data on alternating buffer\/sample\/buffer
 sequences (so called: SC mode) and an online HPLC system \cite{SECPaper2012} for
 SEC-SAXS experiments (called HPLC mode).
-In both modes, data are typically collected at a rate of one frame per second
+In both SC and HPLC mode, data are typically collected at a rate of one frame per second
 (1 fps).
 In order to estimate the quality and usefulness of the acquired data, it is
 necessary to process them in a quick and robust way, compatible with the
@@ -127,14 +127,14 @@ large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
 \cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and
 \textit{SASFLOW} \cite{X33P,P12},  \textit{XRDUA} \cite{xrdua}, \ldots
 Most of these either require some advanced input from users or are not open source.
-An alternative to these dedicated SAXS tools are more general frameworks such as
+An alternative to these dedicated SAXS tools are more general open source frameworks such as
 \textit{EDNA} which is for example used for macromolecular crystallography at
 ESRF \cite{EDNA}.
 Our goal was to develop a robust set of online auto-processing pipelines
 for bioSAXS experiments, including data reduction, primary analysis and
 \textit{ab-initio} modeling  within the EDNA framework.
 The additional needs for flexibility and minimization of
-direct user interaction, lead us to develop pipelines for both SC and HPLC mode with EDNA.
+direct user interaction, led us to develop pipelines for both SC and HPLC mode with EDNA.
 These pipelines use pyFAI for azimuthal integration \cite{pyFAI} and tools
 from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modeling.
 Some parts of the \textsc{atsas} package have been re-implemented as a Python
@@ -166,7 +166,7 @@ via the tango protocol\cite{tango}.
 
 
 \subsection{EDNA}
-EDNA is a plugin-based framework to build pipelines for data-analysis.
+EDNA \cite{EDNA} is a plugin-based framework to build pipelines for data-analysis.
 The basic idea behind EDNA is to have plugins which are either responsible for the execution
 of a task or an external process (called \textit{execution plugins}) or in
 charge of launching and managing other plugins, either sequentially or in
@@ -196,10 +196,10 @@ they arrive but they are just instantiated and queued.
 Another thread is responsible for starting them and can start multiple jobs in parallel
 (data-parallelism).
 The number of jobs and the number of actual execution
-plugins running simultaneously is controlled independently to do the best usage
-of the computing power available.
+plugins running simultaneously is controlled independently to make the best use
+of the computing resources available.
 
-Once finished, any EDNA job emits a tango-event to announce the results are
+Once finished, every EDNA job emits a tango-event to announce the results are
 available with its status: success or failure.
 Other processes, e.g. the data acquisition software, can then retrieve the result
 of the processing, e.g. the 1D integrated scattering curve and
@@ -214,40 +214,20 @@ Two computers with GP-GPU computing capabilities (Nvidia Quadro 4000) are
 dedicated for online data analysis on the \textit{bioSAXS} beamline BM29, they are
 independent and feature the same software installation.
 As the \textit{ab-initio} reconstruction pipeline lasts of dozens of minutes
-(due to the final refinement stage using \textit{dammin}, it is run on the most
+(due to the final refinement stage using \textit{dammin}), it is run on the most
 powerful computer whereas the azimuthal integration pipeline, which needs the lowest
-latency, is run on the small computer.
+latency, is run on the smaller computer.
 A third computer with similar computing capabilities is available for
 \textit{off-line} reprocessing, development of pipelines and acts as a spare.
 All three computers are running Debian 7 operating system with \textsc{atsas}
 (version 2.6.1).
 
 
-\subsection{Preparation of protein sample and data acquisition}
-All examples of protein data in this manuscript are based on a deletion construct of
-the D5 protein from vaccinia virus (VACV).
-The sequences of D5R is from the VACV strain Copenhagen (GenBank accession number M35027.1).
-D5 391-785 was cloned into the pProEx Htb plasmid (Invitrogen), fused to an N-terminal
-TEV(tobacco etch virus) protease-cleavable hexahistidine tag. The protein was expressed in
-BL21* and purified over a HIS-select column (Sigma) (lysis buffer: 50 mM Tris pH 8.5, 150 mM NaCl,
-5 mM MgCl$_{2}$, Complete protease inhibitor cocktail (Roche), DNaseA, 10 mM beta-Mercaptoethanol; 
-binding buffer: 50 mM Tris pH 8.5, 150 mM NaCl, 10 mM beta-Mercaptoethanol; 
-high salt wash buffer: 50 mM Tris pH 8.5, 1 M NaCl, 10 mM beta-Mercaptoethanol, 
-elution buffer: 50 mM Tris pH 8.5, 150 mM NaCl,  200 mM imidazole, 10 mM beta-Mercaptoethanol). 
-The buffer of the eluates was exchanged to binding buffer on a PD10 column and the protein was 
-TEV-digested over night at RT. After a second Ni-column, the sample was injected onto a 
-Superdex 200 GL 10/300 column (GE Healthcare) equilibrated with gel filtration buffer 
-(20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol (DTT)). Eluted peaks were analyzed by 
-SDS-PAGE, stained with InstantBlue (Expedeon).
-For sample changer mode a dilution series of five different concentrations was prepared
-(see table~\ref{tbl:results}). For size exclusion we injected 50~$\mu$l of sample at 20~mg/ml on a Superdex
-200 5/150 GL column (GE healthcare).
-
 
 \section{Data analysis pipeline in sample changer mode}
 
 Using the sample changer allows a high throughput of different samples (
-\char`\~3 mn/sample).
+$\sim 3$~min/sample).
 Before and after measuring a sample, a background measurement using its
 corresponding buffer is performed.
 If the buffer of a sample is the same as the one of the preceding sample, the
@@ -265,7 +245,7 @@ The following steps for data reduction and analysis are required:
 \item basic analysis of the sample curve (Guinier plots, and other invariants)
 \item \textit{ab-initio} modeling based on the basic analysis.
 \end{enumerate}
-In the EDNA bioSAXS application (ii) and (iii) are combined into one pipeline.
+In the EDNA bioSAXS application (2) and (3) are combined into one pipeline.
 
 \subsection{Azimuthal integration pipeline}
 \label{AI}
@@ -308,16 +288,16 @@ computers thanks to EDNA multi-threaded environment.
 Subsequently, the \textit{SmartMerge} plugin averages the individual frames
 of a measurement, controls for the buffer-sample-buffer sequence and
  calls the \textit{autoSub} plugin, which determines the optimal buffer
-(see hereafter) and subtracts it from the sample data,  providing the so called
+(see hereafter) and subtracts it from the sample data,  providing the 
 \textit{subtracted curve} containing only the scattering from the macromolecule
 of interest.
 If the buffers measured before and after the sample are considered sufficiently
-similar by \textit{datcmp}, the optimal buffer is their average.
-If they differ too much, each of them is subtracted individually from the
+similar by \textit{datcmp} ($p > 0.01$), the optimal buffer is their average.
+If they differ too much ($p \leq 0.01$), each of them is subtracted individually from the
 sample curve and the difference which results in  the smallest radius of gyration ($R_{G}$),
 as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
-If both values of $R_{G}$ are identical for difference curve, the selection is made on the lowest forward scattering intensity $I_{0}$.
-If \textit{autorg} fails for both subtracted curve, the buffer with the lowest total scattering is selected.
+If both values of $R_{G}$ are identical, the selection is made using the lowest forward scattering intensity $I_{0}$.
+If \textit{autorg} fails for both subtracted curves, the buffer with the lowest total scattering is selected.
 Figure~\ref{fgr:autosub} provides a flow chart of the plugin.
 
 Finally this \textit{subtracted curve} is analyzed using the
@@ -332,7 +312,7 @@ of the success of the experiment and additionally logged into the ISPyBB
 database \cite{ISPYBB} where they can be accessed via an web interface.
 Figure~\ref{fgr:analysis} provides a flow chart of the plugin.
 
-\subsection{Ab initio reconstruction pipeline}
+\subsection{Ab-initio reconstruction pipeline}
 \label{abinitio}
 Following the analysis, a three dimensional, dummy atom model based
 on the \textit{subtracted curve} is reconstructed.
@@ -371,8 +351,7 @@ discarded.
 
 All valid models are merged using \textit{damaver} \cite{damaver}, \textit{damstart} and
 \textit{damfilt} and finally refined using \textit{dammin} \cite{dammin}.
-This last step is pretty slow an lasts usually for dozens of minutes and is
-aborted after half an hour by EDNA in order to free resources.
+This last step is pretty slow an lasts usually for dozens of minutes. If it lasts longer then half an hour, we assume that \textit{dammin} will not finish and EDNA aborts the process in order to free resources. 
 All results are uploaded to the ISPyBB database where they can also be
 visualized. Figure~\ref{fgr:modeling} provides a flow chart of the plugin.
 
@@ -402,7 +381,7 @@ species but to give a hint on the overall data quality as soon as possible.
 
 \subsection{HPLC single frame pipeline}
 
-This pipeline is triggered for every frame in HPLC mode.
+The HPLC single frame processing pipeline is triggered for every frame in HPLC mode.
 It integrates each frame using the azimuthal integration pipeline (see
 \ref{AI}) and compares the result to the first frame using \textit{datcmp} from the
 \textsc{atsas} package.
@@ -421,19 +400,16 @@ This plugin (on the current hardware) can operate at about 2 Hz, but often the
 acquisition speed is 1 frame per second, so that the image can be integrated and
 displayed in almost real time.
 
-Any frame very dissimilar to the first (using another threshold) is considered
-as a sample frame hence the averaged buffer signal is subtracted and Guinier
-analysis is performed, providing the radius of gyration $R_G$ and the
-intensity of scattering at $q=0$.
 
-\subsection{HPLC flush}
-When the HPLC experiment ends (or is aborted) a specific plugin is launched to
+
+\subsection{HPLC run processing}
+When the HPLC experiment ends (or is aborted) a specific plugin (\textit{HPLCflush}) is launched to
 finish the processing of the experiment as one SEC-SAXS run.
 The plugin uses the results of \textit{autorg} to locate peaks using continuous
 wave transformation as implemented in SciPy on the forward scattering
 \cite{cwt,scipy}, and then merges all individual curves around a local maxima
 of the forward scattering with similar radius of gyration.
-All processing results from the \textit{HPLC frame pipeline} and the results of
+All processing results from the \textit{HPLC single frame pipeline} and the results of
 the peak finding are saved into a single HDF5 file which is uploaded to the
 ISPyBB database at the end of the processing.
 In addition, the plugin creates figures (in PNG and in SVG format) of the
@@ -455,8 +431,8 @@ accordingly.
 For HPLC mode and curve-merging, there are specific tools to reprocess complete
 datasets if needed.
 
-The drawback of this approach is to rely on the EDNA infrastructure which is
-non trivial to install and even difficult to customize (path of the
+The drawback of this approach is that it relies on the EDNA infrastructure, which is
+non trivial to install and even more difficult to customize (path of the
 \textsc{atsas} executable and licensing issue, number of cores, GPU
 configuration, timeouts for any part of pipelines, \ldots).
 The availability of a spare computer on the beamline dedicated for offline
@@ -473,7 +449,7 @@ as the radius of gyration decreases with the  sample concentration (see table~\r
 To eliminate potential undesired oligomers (e.g. aggregates), we additionally performed a SEC-SAXS run.
 The total scattering chromatogram provided nearly instantaneously via BsxCuBe displays a strong main
 peak with extended tails both sides (see figure \ref{fgr:SEC}).
-After the completion of the run, the complete analysis results can be browse via
+After the completion of the run, the complete analysis results can be examined via
 ISPyBB.
 The forward scattering intensity shows the same peak as the total scattering intensity.
 In the early frames of the peaks both the radius of gyration and the mass estimate get systematically
@@ -490,10 +466,14 @@ changer shows a consistently lower radius of gyration (see table \ref{tbl:result
 comparison of the curves shows a slightly higher signal at low angles for sample changer data,
 indicating aggregates.
 
-In our example, the auto-processing helped us to optimize our experiment on the fly.
+%In our example, the auto-processing helped us to optimize our experiment on the fly.
 
 \section{Conclusions and Outlook}
-offline processing interface, workflows
+As illustrated by our example, auto processing has become an invaluable tool for experiments at BM29, enabling optimization of the data acquisition parameters to obtain the best data, avoiding the effects or radiation damage on the data, measuring additional dilutions where inter-particle scattering is observed or switching to online SEC where necessary, etc. Additionally where data quality is good the feedback allows efficient use of beamtime avoiding additional unnecessary measurements and giving users confidence to move to the next highest priority samples. 
+The combination of the auto processing results being available and their presentation in a user friendly manner in ISPyB facilitates experiments for both experienced users by enabling them to spend more time preparing samples and acquiring data (instead of data processing) and for newcomers to the beamline and technique  to whom  the software tools and their use might be unfamiliar. Auto processing gives the users real time feedback on data quality and the progress of the experiment enabling them to spend more time thinking about their science and how to do the best experiment. 
+Additionally the automation of data processing along with data acquisition an efficient experiment and thorough experiment can be confidently carried out by an individual. 
+
+The modularity of the EDNA-plugin based approach facilitates the addition of new tools as well as the re-use of existing plugins for other purposes. For example, it will be easy to add new tools such as \textsc{shanum} \cite{SHANUM}, which estimates the number of meaningful Shannon channels, without affecting the integrity of the existing pipline. Additionally, the existing EDNA plugins can easily be integrated into more complex workflows such as those already available for macromolecular crystallography \cite{workflow}. 
 
 \appendix
 \ack{The authors would like to thank Ricardo Fernandes and Thomas Boeglin for developing
@@ -511,6 +491,26 @@ Stephanie Hutin was supported by an ANR grant (REPLIPOX, ANR-13-BSV8-0014).}
 \bibliographystyle{iucr}
 \bibliography{biblio}
 
+
+\section{Preparation of protein sample and data acquisition}
+All examples of protein data in this manuscript are based on a deletion construct of
+the D5 protein from vaccinia virus (VACV).
+The sequences of D5R is from the VACV strain Copenhagen (GenBank accession number M35027.1).
+D5 391-785 was cloned into the pProEx Htb plasmid (Invitrogen), fused to an N-terminal
+TEV(tobacco etch virus) protease-cleavable hexahistidine tag. The protein was expressed in
+BL21* and purified over a HIS-select column (Sigma) (lysis buffer: 50 mM Tris pH 8.5, 150 mM NaCl,
+5 mM MgCl$_{2}$, Complete protease inhibitor cocktail (Roche), DNaseA, 10 mM beta-Mercaptoethanol; 
+binding buffer: 50 mM Tris pH 8.5, 150 mM NaCl, 10 mM beta-Mercaptoethanol; 
+high salt wash buffer: 50 mM Tris pH 8.5, 1 M NaCl, 10 mM beta-Mercaptoethanol, 
+elution buffer: 50 mM Tris pH 8.5, 150 mM NaCl,  200 mM imidazole, 10 mM beta-Mercaptoethanol). 
+The buffer of the eluates was exchanged to binding buffer on a PD10 column and the protein was 
+TEV-digested over night at RT. After a second Ni-column, the sample was injected onto a 
+Superdex 200 GL 10/300 column (GE Healthcare) equilibrated with gel filtration buffer 
+(20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol (DTT)). Eluted peaks were analyzed by 
+SDS-PAGE, stained with InstantBlue (Expedeon).
+For sample changer mode a dilution series of five different concentrations was prepared
+(see table~\ref{tbl:results}). For size exclusion we injected 50~$\mu$l of sample at 20~mg/ml on a Superdex
+200 5/150 GL column (GE healthcare).
 
 
 \section{Software distribution and licensing}
@@ -644,11 +644,11 @@ mode and SEC-SAXS data in the low-$q$ regime. }
    & $c$  & $I_{0}$  & $R_{G}$ & $D_{max}$ & $V_{P}$ & $V_{c}$ & Mass from $V_{c}$\\
 	 &  (mg/ml) & (kDa) & (nm)&  (nm)&  (nm$^{3}$) & (nm$^{2}$) & (kDa)\\
 \hline
-Sample changer & 5.00  & 35.06 & 2.80 & 9.37  & 72.00 n& &  \\
-Sample changer & 2.50  & 34.28 & 2.83  & 9.91  & 72.08 & &  \\
-Sample changer & 1.25 & 33.58& 2.86  & 8.74  & 69.82 & &  \\
-Sample changer & 0.62  & 35.1& 2.99  & 10.48 & 73.89 & &  \\
-Sample changer & 0.31 & 35.83  & 3.26  & 8.72  & 74.42& &  \\
+Sample changer & 5.00  & 35.06 & 2.80 & 9.37  & 72.00 n& 4.18 & 50.85 \\
+Sample changer & 2.50  & 34.28 & 2.83  & 9.91  & 72.08 & 4.20 & 50.15 \\
+Sample changer & 1.25 & 33.58& 2.86  & 8.74  & 69.82 & 4.20 & 50.02 \\
+Sample changer & 0.62  & 35.1& 2.99  & 10.48 & 73.89 & 4.40 & 52.73 \\
+Sample changer & 0.31 & 35.83  & 3.26  & 8.72  & 74.42& 4.67 & 54.34 \\
 HPLC, top of peak & - & 183.16 & 2.72  & -  & - & 4.08 & 49.70 \\
 HPLC, merge & - & 123.89 & 2.70  & 9.46 & 69.97 & &  \\
 Manual merge & - &  149.90 & 2.69 & 8.25 & & &  \\
