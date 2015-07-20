@@ -90,8 +90,9 @@ High throughput small-angle X-ray scattering on proteins in solution at
 synchrotron sources is a commonly used technique in structural biology which
 relies on highly automated data acquisition.
 Data reduction and primary analysis for bioSAXS experiments consists of a
-well-defined series of individual tasks whose automation allows easy first
-assessment of the quality of collected data and adjustment of collection strategies if necessary.
+well-defined series of individual tasks the automation of which allows a first
+easy assessment of the quality of collected data and the adjustment of
+collection strategies if necessary. 
 This article describes both the logic and the technical implementation of the
 automated processing pipeline for bioSAXS data at the ESRF BM29 beamline using
 the EDNA framework.
@@ -103,22 +104,23 @@ The popularity of small-angle X-ray scattering on proteins and nucleic acids in
 solution (bioSAXS) to resolve their three-dimensional shape is continuously
 growing \cite{Graewert2013,Hura2009,Reyes2014}.
 This has not only resulted in the construction of new dedicated
-synchrotron beamlines, such as BM29 at ESRF, P12 at EMBL Hamburg or B21 at
-Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward new
-developments in both beamline instrumentation and sample handling.
+synchrotron beamlines, such as BM29 at the ESRF, P12 at the EMBL Hamburg or B21
+at the Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward
+new developments in both beamline instrumentation and sample handling.
 Examples for this trend are the development of dedicated sample changers
 \cite{SCpaper} or the integration of size exclusion chromatography (SEC) systems
-into existing beamlines to ensure the mono-dispersity of the sample a a given
+into existing beamlines to ensure the mono-dispersity of the sample at a given
 time \cite{SECPaper2012,SECP12,SECSWING}.
-The \textit{BioSAXS} beamline, BM29, at the synchrotron ESRF, is a small angle
+The \textit{BioSAXS} beamline, BM29, is a small-angle
 X-ray scattering beamline dedicated to structural biology \cite{BM29paper}.
-Currently, the beamline provides two main experimental modes; use of the
-bioSAXS sample changer to collect data on alternating buffer\/sample\/buffer
-sequences (so called: SC mode) and an online HPLC system \cite{SECPaper2012} for
-SEC-SAXS experiments (called HPLC mode).
+Currently, BM29 provides two main experimental modes: 
+the use of the
+bioSAXS sample changer to collect data on alternating buffer-sample-buffer
+sequences (SC mode) and an online HPLC system \cite{SECPaper2012} for
+SEC-SAXS experiments (HPLC mode).
 In both SC and HPLC mode, data are typically collected at a rate of one frame per second
 (1 fps).
-In order to estimate the quality and usefulness of the acquired data, it is
+In order to estimate the quality of the acquired data, it is
 necessary to process them in a quick and robust way, compatible with the
 throughput of the beamline.
 
@@ -129,34 +131,36 @@ large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
 Most of these either require some advanced input from users or are not open source.
 An alternative to these dedicated SAXS tools are more general open source frameworks such as
 \textit{EDNA} which is for example used for macromolecular crystallography at
-ESRF \cite{EDNA}.
+the ESRF \cite{EDNA}.
 Our goal was to develop a robust set of online auto-processing pipelines
-for bioSAXS experiments, including data reduction, primary analysis and
-\textit{ab-initio} modeling  within the EDNA framework.
+for bioSAXS experiments, including data reduction, preliminary analysis and
+\textit{ab initio} modelling  within the EDNA framework.
 The additional needs for flexibility and minimization of
-direct user interaction, led us to develop pipelines for both SC and HPLC mode with EDNA.
+direct user interaction led us to develop pipelines for both SC and HPLC mode
+via EDNA.
 These pipelines use pyFAI for azimuthal integration \cite{pyFAI} and tools
-from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modeling.
+from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modelling.
 Some parts of the \textsc{atsas} package have been re-implemented as a Python
 library (named FreeSAS \cite{freesas}) for a better integration into the
 Python-based pipeline.
-All data analysis is smoothly integrated with the beamline control system
+The whole data analysis is smoothly integrated with the beamline control system
 (BsxCuBe) and the ISPyBB \cite{ISPYBB} database.
 
 
-Online data analysis is a key component of any highly automated beamlines
-where the acquisition of a sample lasts a few seconds and without dead-time between samples.
-Therefore the processing speed must at least keep up with the data acquisition, which
-at ESRF-BM29 is typically one frame per second and about three minutes for a set
-of background and sample measurements in sample changer mode.
+Online data analysis is a key component of any highly automated beamline
+where the acquisition of a sample lasts a few seconds and with no dead time
+between samples.
+Therefore the processing speed must at least keep up with the data acquisition
+rate, i.e 1 fps frame per second and about 3 minutes for a set of background and
+sample measurements in SC mode.
 
 
 \subsection{Experiment control}
-Data acquisition at the ESRF-BM29 beamline is controlled via the BsxCuBe
+Data acquisition at the BM29 beamline is controlled via the BsxCuBe
 graphical interface, written in Python/Qt4 \cite{pyqt}.
-BsxCuBe is composed of control-objects which communicate with other beamline
+BsxCuBe is composed of control objects which communicate with other beamline
 components (i.e. detector, motors, sample changer, data analysis server\ldots)
-via the tango protocol\cite{tango}.
+via the Tango protocol\cite{tango}.
 
 %\subsection{Data analysis server}
 
@@ -167,18 +171,19 @@ via the tango protocol\cite{tango}.
 
 \subsection{EDNA}
 EDNA \cite{EDNA} is a plugin-based framework to build pipelines for data-analysis.
-The basic idea behind EDNA is to have plugins which are either responsible for the execution
-of a task or an external process (called \textit{execution plugins}) or in
-charge of launching and managing other plugins, either sequentially or in
+Every EDNA-plugin is either responsible
+for the execution of a task, i.e. managing an external process,
+(called \textit{execution plugins}) or in charge of launching and managing other plugins, either sequentially or in
 parallel (called \textit{control plugins}).
-The number of execution plugins running simultaneously is limited by processor
-resources of the computer (and the Python global interpreter lock).
+The number of execution plugins running simultaneously is limited by the
+processor resources of the computer used (and the Python global interpreter
+lock).
 Any plugin receives its input arguments and returns its result using
-EDNA data-structures (actually Python objects) which can be serialized into XML
-for saving on the disk or sending them over the network.
+EDNA data structures (actually Python objects) which can be serialised into XML
+for saving them on the disk or sending them over the network.
 
 An EDNA job is a top level control plugin which communicates with the outside
-world, providing its state, or its results even after processing is finished,
+world, providing its state or its results even after processing is finished,
 while keeping its memory footprint as small as possible.
 
 \subsection{The Tango device server}
@@ -186,133 +191,141 @@ For accepting processing jobs from the outside, e.g. from the data
 acquisition software (BsxCuBe), EDNA provides a Python based Tango device
 server interface \cite{tango,pytango}.
 The device server starts EDNA jobs via the \textit{startJob} command.
-The parameters of this command are a plugin name and the input data-structure
-associated with it (serialized); and returns a job identifier to the requester.
-This Tango device server is hence completely generic and can be used for any
+The parameters of this command are the plugin name and the input data structure
+associated with it (serialised) and returns a job identifier to the requester.
+The Tango device server is hence completely generic and can be used for any
 type of EDNA jobs.
 
 To achieve maximum responsiveness at the Tango level, EDNA jobs are not started as
 they arrive but they are just instantiated and queued.
 Another thread is responsible for starting them and can start multiple jobs in parallel
-(data-parallelism).
+(data parallelism).
 The number of jobs and the number of actual execution
 plugins running simultaneously is controlled independently to make the best use
 of the computing resources available.
 
-Once finished, every EDNA job emits a tango-event to announce the results are
-available with its status: success or failure.
+Once finished, every EDNA job produces  a Tango event announcing that the
+results are available and also its status: success or failure.
 Other processes, e.g. the data acquisition software, can then retrieve the result
 of the processing, e.g. the 1D integrated scattering curve and
 display it without reading from the disk.
-This architecture allows to start processing for individual images or to
-display curves instantaneously without polling the shared file-system.
-This improves greatly the responsiveness as synchronization of shared
-file-systems across the network often exhibits delays of multiple seconds.
+This architecture allows starting processing for individual images or
+displaying curves instantaneously without polling the shared file system.
+This improves greatly the responsiveness sinc synchronisation of shared
+file systems across the network often exhibits delays of several
+seconds.
 
 \subsection{Hardware, software and versions}
 Two computers with GP-GPU computing capabilities (Nvidia Quadro 4000) are
-dedicated for online data analysis on the \textit{bioSAXS} beamline BM29, they are
-independent and feature the same software installation.
-As the \textit{ab-initio} reconstruction pipeline lasts of dozens of minutes
-(due to the final refinement stage using \textit{dammin}), it is run on the most
-powerful computer whereas the azimuthal integration pipeline, which needs the lowest
-latency, is run on the smaller computer.
+dedicated to online data analysis on BM29. 
+They are independent and feature the same software installation.
+As the \textit{ab initio} reconstruction pipeline lasts dozens of minutes
+(due to the final refinement stage using \textit{dammin}), this runs on the
+more powerful computer, whereas the azimuthal integration pipeline, which needs
+the lowest latency, runs on the smaller computer.
 A third computer with similar computing capabilities is available for
 \textit{off-line} reprocessing, development of pipelines and acts as a spare.
-All three computers are running Debian 7 operating system with \textsc{atsas}
-(version 2.6.1).
+All three computers are equipped with the Debian 7 operating system and are
+used to run \textsc{atsas} (version 2.6.1).
 
 
 
 \section{Data analysis pipeline in sample changer mode}
 
-Using the sample changer allows a high throughput of different samples (
+Using the sample changer ensures a high throughput of different samples (
 $\sim 3$~min/sample).
 Before and after measuring a sample, a background measurement using its
-corresponding buffer is performed.
+respective buffer is performed.
 If the buffer of a sample is the same as the one of the preceding sample, the
-background measurement before the sample is dropped, as it is identical to the
-buffer measurement after the preceding sample.
-Hence, data is produced in sequences of the type \textit{buffer 1, sample 1,
+background measurement before the sample is skipped.
+Hence, data are produced in sequences of the type \textit{buffer 1, sample 1,
 buffer 1, buffer 2, sample 2, buffer 2, \ldots}  or  \textit{buffer 1, sample 1,
 buffer 1,  sample 2, buffer 1 \ldots}.
-Typically for each buffer or sample, 10 frames of 1~s exposure time are acquired.
+Typically for each buffer or sample, 10 frames of 1~s exposure time each are
+acquired.
 
 The following steps for data reduction and analysis are required:
 \begin{enumerate}
 \item the azimuthal integration of an individual frame,
-\item the creation of a background corrected sample curve,
-\item basic analysis of the sample curve (Guinier plots, and other invariants)
-\item \textit{ab-initio} modeling based on the basic analysis.
+\item the creation of a background-corrected sample scattering curve,
+\item basic analysis of the sample scattering curve (Guinier plots, and other
+invariants)
+\item \textit{ab initio} modelling based on basic analysis.
 \end{enumerate}
-In the EDNA bioSAXS application (2) and (3) are combined into one pipeline.
+In the EDNA bioSAXS application (2) and (3) are combined in one pipeline.
 
 \subsection{Azimuthal integration pipeline}
 \label{AI}
-The azimuthal integration pipeline is triggered for every single frame acquired, i.e. every second,
-and therefore needs to have the lowest latency possible to display the integrated curve
-in \textit{real time} in the graphical beamline control interface BsxCuBe.
-The input data-structure for azimuthal integration contains
+The azimuthal integration pipeline is triggered for every acquired single frame,
+i.e. every second, and thus needs the lowest latency possible to
+display the integrated curve in \textit{real time} via BsxCuBe.
+The input data structure for azimuthal integration contains
 information about the geometry of the experiment, the sample, its concentration
 and the transmitted intensity (I1) as measured on the beam-stop diode for
-normalization, etc.
-To cope with the requested speed (up to 10 frames per second), this pipeline
-has been optimized and simplified to the maximum.
-It relies on the FabIO \cite{fabio} package for image reading (from NFS-mounted
-disks) and pyFAI \cite{pyFAI} for azimuthal integration.
-As the images are acquired with a Pilatus 1M pixel detector (from Dectris), the
-error can be assumed to be Poissonian and is integrated as such.
-The azimuthal integration calculation is performed on a dedicated graphics card
+normalisation, etc.
+In order to cope with the requested speed (up to 10 frames per second), this
+pipeline has been optimised and simplified to a large extent.
+It relies on the FabIO \cite{fabio} package for image reading and pyFAI
+\cite{pyFAI} for azimuthal integration.
+As the images are acquired with a Pilatus 1M pixel detector (manufactured by
+Dectris), the error can be assumed to be Poissonian and is integrated as such.
+The azimuthal integration is performed on a dedicated graphics card
 (Nvidia Quadro 4000) using OpenCL \cite{pyFAI_gpu}, offloading this processing
-from CPU to GPU, hence leaving resources to other pipelines.
-Subsequent normalization are performed directly using NumPy~\cite{numpy}.
-The result is saved into a 3-column ASCII file suitable for further processing
-using the \textsc{atsas} tools \cite{ATSAS2} and sent back to BsxCuBe for
-live display.
+from CPU to GPU, hence freeing resources for other pipelines.
+The subsequent normalisation is performed directly using NumPy~\cite{numpy}.
+The result is saved into a 3-column ASCII file (q, I, $\sigma$) for further
+processing by the \textsc{atsas} tools \cite{ATSAS2} and sent back to BsxCuBe
+for live display.
 In accordance with EMBL and ESRF standards, the scattering vector
-$q=4\pi\frac{\sin(\theta)}{\lambda}$ is given in inverse nanometers.
+$q=4\pi\frac{\sin(\theta)}{\lambda}$ is expressed in inverse nanometers.
 
 \subsection{Curve merging, background correction and basic analysis}
 \label{SM}
-Data acquisition is usually performed  in sets of sample and buffer measurements.
-Each sample or background measurement consists of set of frames
+Data acquisition is usually carried out in sets of sample and buffer
+measurements.
+Each sample or background measurement consists of a set of frames
 (typically 10) in order to be able to detect radiation damage
-(preventing the interpretation of data from damaged samples).
+(avoiding the interpretation of data from damaged samples).
 The \textit{SmartMerge} pipeline is triggered at the end of each measurement
-and is responsible for evaluating the similarity of different scattering
-patterns, using the \textit{datcmp} tool from \textsc{atsas} and merging all frames
-similar to the first and propagate the associated meta data and errors.
-A flow diagram is provided in figure~\ref{fgr:smart}.
+and is designed to evaluate similarities among scattering
+patterns, using the \textit{datcmp} tool from \textsc{atsas} and merging all
+similar frames and propagating the associated metadata and
+errors.
+A flow diagram is depicted in figure~\ref{fgr:smart}.
 All curve comparisons can be performed in parallel on modern multicore
-computers thanks to EDNA multi-threaded environment.
+computers thanks to the EDNA multi-threaded environment.
 Subsequently, the \textit{SmartMerge} plugin averages the individual frames
-of a measurement, controls for the buffer-sample-buffer sequence and
+of a measurement, monitors the buffer-sample-buffer sequence and
  calls the \textit{autoSub} plugin, which determines the optimal buffer
-(see hereafter) and subtracts it from the sample data,  providing the 
-\textit{subtracted curve} containing only the scattering from the macromolecule
-of interest.
+(see below) and subtracts it from the sample data, yielding the 
+\textit{subtracted curve} representing only the scattering from the
+macromolecule of interest.
 If the buffers measured before and after the sample are considered sufficiently
-similar by \textit{datcmp} ($p > 0.01$), the optimal buffer is their average.
+similar by \textit{datcmp} (used to calculate the p-value $p > 0.01$), the
+optimal buffer is their average.
 If they differ too much ($p \leq 0.01$), each of them is subtracted individually from the
-sample curve and the difference which results in  the smallest radius of gyration ($R_{G}$),
-as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
+sample curve and the difference resulting in  the smallest radius of
+gyration ($R_{G}$), as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
 If both values of $R_{G}$ are identical, the selection is made using the lowest forward scattering intensity $I_{0}$.
-If \textit{autorg} fails for both subtracted curves, the buffer with the lowest total scattering is selected.
+If \textit{autorg} fails for both subtracted curves, the buffer with the lowest
+total scattering is chosen.
 Figure~\ref{fgr:autosub} provides a flow chart of the plugin.
 
-Finally this \textit{subtracted curve} is analyzed using the
-\textit{SaxsAnalysis} plugin which performs subsequently applies tools from the \textsc{atsas} package for Guinier region fitting
-using \textit{autorg}, inverse Fourier transform using \textit{datgnom} to obtain
+Finally the \textit{subtracted curve} is analysed using the
+\textit{SaxsAnalysis} plugin which subsequently applies tools from the
+\textsc{atsas} package: the Guinier region fitting using \textit{autorg}, 
+the inverse Fourier transform using \textit{datgnom}, 
 $p(r)$ and Porod volume assessment using \textit{datprorod}.
 In addition the \textit{SaxsAnalysis} plugin creates \textit{PNG} figures of
-the subtracted curve and the fit created by \textit{datgnom}, the Guinier fit,
-the $p(r)$ function and Kratky plots whenever possible (Figure~\ref{plots}).
-All these information and figures are then directly returned to BsxCuBe to inform the user
-of the success of the experiment and additionally logged into the ISPyBB
-database \cite{ISPYBB} where they can be accessed via an web interface.
-Figure~\ref{fgr:analysis} provides a flow chart of the plugin.
+the subtracted curve and the fitting curve generated by \textit{datgnom}, the
+Guinier fit, the $p(r)$ function and Kratky plots whenever possible (Figure~\ref{plots}).
+All this information and figures are then directly returned to BsxCuBe to inform
+the user of the success of the measurment and additionally logs into the
+ISPyBB database \cite{ISPYBB} where the results can be accessed via a web
+interface.
+Figure~\ref{fgr:analysis} shows a flowchart of the plugin.
 
-\subsection{Ab-initio reconstruction pipeline}
+\subsection{Ab initio reconstruction pipeline}
 \label{abinitio}
 Following the analysis, a three dimensional, dummy atom model based
 on the \textit{subtracted curve} is reconstructed.
@@ -355,7 +368,7 @@ This last step is pretty slow an lasts usually for dozens of minutes.
 If it lasts longer then half an hour, we assume that \textit{dammin} will not finish and 
 EDNA aborts the process in order to free resources. 
 All results are uploaded to the ISPyBB database where they can also be
-visualized. Figure~\ref{fgr:modeling} provides a flow chart of the plugin.
+visualized. Figure~\ref{fgr:modelling} provides a flow chart of the plugin.
 
 
 \section{Data analysis pipeline in HPLC mode}
@@ -420,7 +433,7 @@ number (or time).
 Figure \ref{fgr:SEC} shows the result of an HPLC
 experiment where one main peak and a trailing shoulder is identified.
 All merged files are further analyzed by the \textit{SAXS analysis}
-(\ref{SM}) and the \textit{ab-initio reconstruction pipeline}
+(\ref{SM}) and the \textit{ab initio reconstruction pipeline}
 (\ref{abinitio}) plugins described for the sample changer pipeline.
 
 \section{Offline data analysis}
@@ -459,7 +472,7 @@ smaller with higher frame number, indicating a larger component.
 Both stabilize with higher frame numbers and stay stable until the end.
 The auto-processing chose the region underlined blue in figure  \ref{fgr:SEC}
 for merging the data.
-For further manual processing and modeling of the protein, we chose the smaller
+For further manual processing and modelling of the protein, we chose the smaller
 striped region.
 Direct comparison of the two merged curves that they only differ in the noise level
 (see figure \ref{fgr:curves}).
@@ -493,7 +506,7 @@ efficient experiment and thorough experiment can be confidently carried out by a
 To enhance further the user experiment, the delay of feed-back to the user
 should be kept minimal, providing systematically a consistent result.
 For now, the weakest point of all processing pipelines is the
-\textit{ab-initio} modeling pipeline which may have aborted the
+\textit{ab initio} modelling pipeline which may have aborted the
 execution of the \textit{dammin} process (often due to a time-out in
 the EDNA plugin: the sub-process did not quit as requested).
 By re-implementing this Monte-Carlo modelling step in parallel into FreeSAS, it
@@ -513,7 +526,7 @@ time within a couple of minutes, providing faster feed-back to the user.
 \ack{The authors would like to thank Ricardo Fernandes and Thomas Boeglin for developing
 the original offline reprocessing tools, Peter Boesecke for the original azimuthal
 integration procedure, Olof Svensson for the development of EDNA, Irakli Sikharulidze for
-the original version of the \textit{ab-initio} modeling pipeline,
+the original version of the \textit{ab initio} modelling pipeline,
 Alexey Kikhney, Daniel Franke and Dmitry Svergun for the \textsc{atsas} package and support
 in its implementation, Staffan Ohlsson and Matias Guijarro for integration with the data
 acquisition software, Wim Burmeister for helpful discussions and support, Claudio Ferrero,
@@ -625,7 +638,7 @@ print.}
 \begin{figure}
 \centering
 \includegraphics[width=8cm]{nsd.png}
-\caption{Plots created by the pipeline for comparing a set of \textit{ab-initio} models.
+\caption{Plots created by the pipeline for comparing a set of \textit{ab initio} models.
 The matrix on the left hand site gives the pair-wise normalized spatial discrepancy (NSD) between two models.
 The bar plot on the right hand site gives the mean NSD.
 The layout is adjusted from the standard version for improved readability in
@@ -636,10 +649,10 @@ print.}
 \begin{figure}
 \centering
 \includegraphics[width=8cm]{model.png}
-\caption{Flow diagramm of the \textit{ab-initio} reconstruction plugin from a
+\caption{Flow diagramm of the \textit{ab initio} reconstruction plugin from a
 \textit{gnom-file} (pair distance distribution function).
 Symbols as described in figure \ref{fgr:smart}.}
-\label{fgr:modeling}
+\label{fgr:modelling}
 \end{figure}
 
 \begin{figure}
