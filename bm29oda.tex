@@ -351,7 +351,9 @@ discarded.
 
 All valid models are merged using \textit{damaver} \cite{damaver}, \textit{damstart} and
 \textit{damfilt} and finally refined using \textit{dammin} \cite{dammin}.
-This last step is pretty slow an lasts usually for dozens of minutes. If it lasts longer then half an hour, we assume that \textit{dammin} will not finish and EDNA aborts the process in order to free resources. 
+This last step is pretty slow an lasts usually for dozens of minutes. 
+If it lasts longer then half an hour, we assume that \textit{dammin} will not finish and 
+EDNA aborts the process in order to free resources. 
 All results are uploaded to the ISPyBB database where they can also be
 visualized. Figure~\ref{fgr:modeling} provides a flow chart of the plugin.
 
@@ -469,11 +471,43 @@ indicating aggregates.
 %In our example, the auto-processing helped us to optimize our experiment on the fly.
 
 \section{Conclusions and Outlook}
-As illustrated by our example, auto processing has become an invaluable tool for experiments at BM29, enabling optimization of the data acquisition parameters to obtain the best data, avoiding the effects or radiation damage on the data, measuring additional dilutions where inter-particle scattering is observed or switching to online SEC where necessary, etc. Additionally where data quality is good the feedback allows efficient use of beamtime avoiding additional unnecessary measurements and giving users confidence to move to the next highest priority samples. 
-The combination of the auto processing results being available and their presentation in a user friendly manner in ISPyB facilitates experiments for both experienced users by enabling them to spend more time preparing samples and acquiring data (instead of data processing) and for newcomers to the beamline and technique  to whom  the software tools and their use might be unfamiliar. Auto processing gives the users real time feedback on data quality and the progress of the experiment enabling them to spend more time thinking about their science and how to do the best experiment. 
-Additionally the automation of data processing along with data acquisition an efficient experiment and thorough experiment can be confidently carried out by an individual. 
+As illustrated by our example, auto processing has become an invaluable tool for
+experiments at the \textit{bioSaxs} beamline BM29, enabling optimization of the
+data acquisition parameters to obtain the best data, avoiding the effects of
+radiation damage on the data, measuring additional dilutions where inter-particle 
+scattering is observed or switching to online SEC where necessary, \ldots 
+Additionally where data quality is good the feedback allows efficient use of
+beamtime avoiding additional unnecessary measurements and giving users confidence 
+to move to the next highest priority samples.
+The combination of the auto processing results being available and their presentation 
+in a user friendly manner in ISPyB facilitates experiments for both experienced users 
+by enabling them to spend more time preparing samples and acquiring data 
+(instead of data processing), and for newcomers to the beamline and technique 
+to whom  the software tools and their use might be unfamiliar. 
+Auto processing gives the users real time feedback on data quality and the progress 
+of the experiment enabling them to spend more time thinking about their science and 
+how to do the best experiment.
+Additionally the automation of data processing along with data acquisition, an
+efficient experiment and thorough experiment can be confidently carried out by an individual.
 
-The modularity of the EDNA-plugin based approach facilitates the addition of new tools as well as the re-use of existing plugins for other purposes. For example, it will be easy to add new tools such as \textsc{shanum} \cite{SHANUM}, which estimates the number of meaningful Shannon channels, without affecting the integrity of the existing pipline. Additionally, the existing EDNA plugins can easily be integrated into more complex workflows such as those already available for macromolecular crystallography \cite{workflow}. 
+To enhance further the user experiment, the delay of feed-back to the user
+should be kept minimal, providing systematically a consistent result.
+For now, the weakest point of all processing pipelines is the
+\textit{ab-initio} modeling pipeline which may have aborted the
+execution of the \textit{dammin} process (often due to a time-out in
+the EDNA plugin: the sub-process did not quit as requested).
+By re-implementing this Monte-Carlo modelling step in parallel into FreeSAS, it
+could be integrated directly into the EDNA pipeline and maintain the execution
+time within a couple of minutes, providing faster feed-back to the user.
+
+%The modularity of the EDNA-plugin based approach facilitates the addition of
+%new tools as well as the re-use of existing plugins for other purposes. For
+%example, it will be easy to add new tools such as \textsc{shanum}
+%\cite{SHANUM}, which estimates the number of meaningful Shannon channels,
+%without affecting the integrity of the existing pipline.
+%Additionally, the existing EDNA plugins can easily be integrated into more
+%complex workflows such as those already available for macromolecular
+%crystallography \cite{workflow}.
 
 \appendix
 \ack{The authors would like to thank Ricardo Fernandes and Thomas Boeglin for developing
