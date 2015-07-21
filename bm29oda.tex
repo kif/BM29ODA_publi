@@ -352,7 +352,7 @@ This turned out to be more advantageous (in terms of speed) to read all models
 from disk only once and perform the whole alignment in the memory.
 The distance calculation (actually, the normalised spatial discrepancy, NSD)
 has been optimised using a binary extension of Python, written in Cython
-\cite{cython} and parellelised with OpenMP.
+\cite{cython} and parallelised with OpenMP.
 All other transformations rely on NumPy \cite{numpy} code and the geometric
 optimisation is performed using the simplex minimizer provided by SciPy
 \cite{scipy}.
