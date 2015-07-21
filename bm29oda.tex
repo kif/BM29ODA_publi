@@ -430,7 +430,7 @@ almost in real time.
 
 \subsection{HPLC data processing}
 When the HPLC experiment ends (or is aborted) a specific plugin
-(\textit{HPLC_flush}) is launched to finish the processing of the experiment as
+(\textit{HPLC flush}) is launched to finish the processing of the experiment as
 one SEC-SAXS run. 
 This plugin uses the results of \textit{autorg} to locate peaks using
 continuous wave transformation, as implemented in SciPy, on the forward
@@ -459,8 +459,8 @@ For the HPLC mode and the curve merging task, specific tools to reprocess (if
 needed) complete datasets are available.
 
 The drawback of this approach is that it relies on the EDNA infrastructure, which is
-non trivial to install and even more difficult to customise (
-\textsc{atsas} executable path and related licensing issues, number of cores,
+non trivial to install and even more difficult to customize 
+(\textsc{atsas} executable path and related licensing issues, number of cores,
 GPU configuration, timeouts for any part of the pipelines, \ldots).
 The availability of a spare computer on the beamline dedicated to offline
 processing removes this need, hence reprocessing never interferes with ongoing
@@ -580,7 +580,7 @@ The buffer of the eluates was exchanged to a binding buffer on a PD10 column and
 the protein was TEV-digested over night at RT. 
 After a second Ni-column, the sample was injected into a 
 Superdex 200 GL 10/300 column (GE Healthcare), equilibrated with gel filtration
-buffer (20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol (DTT)). 
+buffer (20 mM Tris pH 8.5, 150 mM NaCl, 1 mM dithiothreitol, DTT). 
 Eluted peaks were analysed by 
 SDS-PAGE, stained with InstantBlue (Expedeon).
 In SC mode a dilution series of five different concentrations
