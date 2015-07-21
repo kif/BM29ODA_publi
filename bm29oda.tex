@@ -327,191 +327,214 @@ Figure~\ref{fgr:analysis} shows a flowchart of the plugin.
 
 \subsection{Ab initio reconstruction pipeline}
 \label{abinitio}
-Following the analysis, a three dimensional, dummy atom model based
+Following the analysis pipeline, a three-dimensional dummy atom model based
 on the \textit{subtracted curve} is reconstructed.
 This pipeline is inspired from a preliminary work
 performed at the Diamond Light Source \cite{DiamondSE}.
-
 It runs multiple instances of \textit{dammif} in parallel (8 or 16 by default)
-to get multiple models \cite{dammif}, taking benefit of the multi-threading
-environment of EDNA.
-Multiple models are created in order to give a visual indication of the variation in
-reconstruction and to avoid over-interpretation and biased decisions based on
-the models.
-After a first round of outlier rejection based on the goodness of fit ($R_{f}$)
-and the $\chi^{2}$ where the threshold is the mean plus two standard
-deviations, only $N$ valid models remain.
+obtaining multiple models \cite{dammif} and benefitting from 
+the multi-threading environment of EDNA.
+Multiple models give a visual indication of the variations in
+reconstruction results and avoid over-interpretation and biased decisions
+based on the models.
+After a first round of outlier rejections relying on the goodness of fit
+($R_{f}$) and the $\chi^{2}$, where the threshold is the mean value plus two
+standard deviations, only $N$ valid models remain.
 
 All $N$ remaining models are superimposed two by two using
-our open source implementation of \textit{supcomb}, which is available freely
-(MIT license) as part of the FreeSAS package \cite{freesas}.
+our open source implementation of \textit{supcomb}, called
+\textit{supycomb} which is available freely (MIT license) as part of the
+FreeSAS package \cite{freesas}.
 Former versions of the pipeline have been using the original
 \textit{supcomb} \cite{supcomb} program from \textsc{atsas} by launching
 $N*(N-1)/2$ processes in parallel within the EDNA framework.
-It turned out to be more advantageous (in term of speed) to read all models
-from disk only once and perform the all alignment in memory.
-The distance calculation (actually normalized spatial discrepancy, NSD) has
-been optimized using a binary extension (Cython parallel code).
+This turned out to be more advantageous (in terms of speed) to read all models
+from disk only once and perform the whole alignment in the memory.
+The distance calculation (actually, the normalised spatial discrepancy, NSD)
+has been optimised using a binary extension of Python, written in Cython
+\cite{cython} and parellelised with OpenMP.
 All other transformations rely on NumPy \cite{numpy} code and the geometric
-optimization is performed using the simplex minimizer provided by SciPy \cite{scipy}.
+optimisation is performed using the simplex minimizer provided by SciPy
+\cite{scipy}.
 
-The table containing the NSD is then generated
-(Figure \ref{fgr:nsd}), explaining which model is the nearest from all other
-valid models. This model is called the reference model and all other valid
+A table containing the NSD is then generated
+(Figure \ref{fgr:nsd}), explaining which model is the nearest among all
+other valid models. 
+The selected model is called the reference model and all other valid
 models are re-oriented and aligned on the reference one.
 All models with an NSD higher than the mean plus one standard deviation are
 discarded.
 
-All valid models are merged using \textit{damaver} \cite{damaver}, \textit{damstart} and
-\textit{damfilt} and finally refined using \textit{dammin} \cite{dammin}.
-This last step is pretty slow an lasts usually for dozens of minutes. 
+All valid models are merged using \textit{damaver} \cite{damaver},
+and \textit{damfilt} to get the average solution. 
+The \textit{damaver} model is also filtered using \textit{damstart} to flag
+core and shell dummy atoms before performing the refinement of the model using
+\textit{dammin} \cite{dammin}.
+This last step is pretty slow an lasts usually dozens of minutes. 
 If it lasts longer then half an hour, we assume that \textit{dammin} will not finish and 
 EDNA aborts the process in order to free resources. 
-All results are uploaded to the ISPyBB database where they can also be
-visualized. Figure~\ref{fgr:modelling} provides a flow chart of the plugin.
+All results are uploaded into the ISPyBB database, where they can also be
+visualised. 
+Figure~\ref{fgr:modelling} shows a flowchart of the modeling plugin.
 
 
 \section{Data analysis pipeline in HPLC mode}
-While the sample changer allows a high throughput of samples, it requires
-homogeneous samples which do not degrade.
+While the sample changer makes a high throughput of samples possible, it
+requires homogeneous samples which do not degrade.
 Protein samples often are intrinsically heterogeneous.
-For example, constituents of a complex might be present in excess or proteins
+For example, constituents of a complex present in excess or proteins
 might aggregate.
 One approach to address this issue is to purify the sample directly online by collecting data
-on the eluent from a size exclusion chromatography column (SEC-SAXS or HPLC mode) \cite{SECPaper2012,SECP12,SECSWING}.
-At the bioSAXS beamline (BM29) we continuously collect 2D-diffraction frames
-throughout the SEC purification run at a rate of 0.5 to 5 Hz
-(depending on the synchrotron filling mode and the duration of the SEC purification, 1 Hz being the standard),
-resulting in up to a few thousand frames.
-While we know that the first few frames are acquired on buffer, the sample composition
-for later frames is not known \textit{a priori}.
-The result of a SEC-SAXS experiment can be very complex.
-Our automatic analysis provides data reduction and basic analysis for every
-individual frame.
+on the eluent from a size-exclusion chromatography column (SEC-SAXS or HPLC
+mode) \cite{SECPaper2012,SECP12,SECSWING}.
+At the BM29 beamline, one continuously collects 2D-diffraction frames
+throughout the SEC purification process at a rate of 0.5 to 5 Hz
+(depending on the synchrotron filling mode and the duration of the SEC
+purification, 1 Hz being the standard rate), resulting in up to a few thousands
+frames.
+While the first few frames are acquired on the buffer, the sample composition
+for successive frames is not known \textit{a priori}.
+The result of a SEC-SAXS experiment can be of very difficult interpretation.
+Our automatic analysis delivers reduced data and basic analysis for
+every individual frame.
 In addition, it uses this information to try to identify regions in the
-chromatogram which correspond to one species and merges frames from these
-regions to improve the signal to noise ratio.
-The goal of this procedure is not to produce an idealized curve of an individual
-species but to give a hint on the overall data quality as soon as possible.
+chromatogram which refer to one species and merges frames from these
+regions to improve the signal-to-noise ratio.
+The goal of this procedure is not to produce an idealised curve of an individual
+species but to give a hint on the overall data quality at an early stage of
+the experiment.
 
 \subsection{HPLC single frame pipeline}
 
-The HPLC single frame processing pipeline is triggered for every frame in HPLC mode.
+The HPLC single frame processing pipeline is activated for every frame in HPLC
+mode.
 It integrates each frame using the azimuthal integration pipeline (see
-\ref{AI}) and compares the result to the first frame using \textit{datcmp} from the
-\textsc{atsas} package.
+\ref{AI}) and compares the result to the first frame using the the
+\textit{p-value} calculated by \textit{datcmp} from the \textsc{atsas} package.
 The frame is then classified as buffer, sample, or ``in between''
-($p>0.1$, $0.01 > p$, $0.01>p>0.1$  respectively).
+according to the \textit{p-value} ($p>0.1$, $0.01 > p$, $0.01>p>0.1$, 
+respectively).
 The first time a frame in a HPLC run is not classified as buffer, all previous
 frames are averaged to yield an ``average buffer''.
 For any frame classified as sample, the ``average buffer'' is subtracted, Guinier
 analysis is performed (with \textit{autorg} from the \textsc{atsas} package),
-providing a radius of gyration $R_G$ and the forward scattering intensity $I_0$,
-and the correlated volume is calculated in order to estimate the mass
-\cite{RamboTainerNature2013}.
-In addition, the plugin also calculates the total scattering intensity of any
-frame, regardless of its classification.
-This plugin (on the current hardware) can operate at about 2 Hz, but often the
-acquisition speed is 1 frame per second, so that the image can be integrated and
-displayed in almost real time.
+delivering a radius of gyration $R_G$ and the forward scattering intensity
+$I_0$. The correlated volume is also calculated in order to estimate the
+sample mass \cite{RamboTainerNature2013}.
+In addition, the total scattering intensity of any
+frame is calculated, regardless of the current classification.
+These operation occur at about 2 Hz on the current hardware, but often the
+acquisition speed is 1 fps, so that the image can be integrated and displayed
+almost in real time.
 
 
-
-\subsection{HPLC run processing}
-When the HPLC experiment ends (or is aborted) a specific plugin (\textit{HPLCflush}) is launched to
-finish the processing of the experiment as one SEC-SAXS run.
-The plugin uses the results of \textit{autorg} to locate peaks using continuous
-wave transformation as implemented in SciPy on the forward scattering
-\cite{cwt,scipy}, and then merges all individual curves around a local maxima
-of the forward scattering with similar radius of gyration.
+\subsection{HPLC data processing}
+When the HPLC experiment ends (or is aborted) a specific plugin
+(\textit{HPLC_flush}) is launched to finish the processing of the experiment as
+one SEC-SAXS run. 
+This plugin uses the results of \textit{autorg} to locate peaks using
+continuous wave transformation, as implemented in SciPy, on the forward
+scattering \cite{cwt,scipy}, and then merges all individual curves around a local maxima
+of the forward scattering with similar radii of gyration ($R_G$).
 All processing results from the \textit{HPLC single frame pipeline} and the results of
-the peak finding are saved into a single HDF5 file which is uploaded to the
-ISPyBB database at the end of the processing.
-In addition, the plugin creates figures (in PNG and in SVG format) of the
+the peak finding are saved into a single HDF5 file which is uploaded into the
+ISPyBB database at the end of the data processing flow.
+In addition, the same plugin creates figures (in PNG and in SVG format) of 
 total scattering, forward scattering and radius of gyration \textit{vs.} frame
 number (or time).
-Figure \ref{fgr:SEC} shows the result of an HPLC
-experiment where one main peak and a trailing shoulder is identified.
-All merged files are further analyzed by the \textit{SAXS analysis}
+Figure \ref{fgr:SEC} shows the result of a HPLC
+experiment where one main peak and a trailing shoulder are identified.
+All merged files are further analysed by the \textit{SAXS analysis}
 (\ref{SM}) and the \textit{ab initio reconstruction pipeline}
-(\ref{abinitio}) plugins described for the sample changer pipeline.
+(\ref{abinitio}) plugins described in the sample changer section.
 
 \section{Offline data analysis}
 In case offline processing is required, e.g. when one of the parameters for
 the azimuthal integration of previously processed data needs to be adjusted,
 several Python scripts for starting sub-pipelines are available.
-Those tools are part of the EDNA installation and just instantiate the needed
-plugin and run it with the parameter description file which has been modified
+These tools are part of the EDNA installation and just instantiate the needed
+plugin and run using the parameter description file which has been modified
 accordingly.
-For HPLC mode and curve-merging, there are specific tools to reprocess complete
-datasets if needed.
+For the HPLC mode and the curve merging task, specific tools to reprocess (if
+needed) complete datasets are available.
 
 The drawback of this approach is that it relies on the EDNA infrastructure, which is
-non trivial to install and even more difficult to customize (path of the
-\textsc{atsas} executable and licensing issue, number of cores, GPU
-configuration, timeouts for any part of pipelines, \ldots).
-The availability of a spare computer on the beamline dedicated for offline
+non trivial to install and even more difficult to customise (
+\textsc{atsas} executable path and related licensing issues, number of cores,
+GPU configuration, timeouts for any part of the pipelines, \ldots).
+The availability of a spare computer on the beamline dedicated to offline
 processing removes this need, hence reprocessing never interferes with ongoing
 acquisitions.
 
 \section{Practical example}
-To illustrate the functionality of the processing pipeline we acquired data collected
-on a deletion construct of the protein D5 from  Vaccinia virus (VACV).
-Data were acquired as both a dilution series using the sample changer as well as
-using SEC-SAXS (see figures \ref{fgr:SCcurves}, \ref{fgr:SEC} and \ref{fgr:curves} respectively).
+To illustrate the functionality of the processing pipeline, data from
+a ``deletion construct'' of the protein D5 from  Vaccinia virus (VACV)
+were acquired both as a dilution series using the sample changer and
+using SEC-SAXS (see figures \ref{fgr:SCcurves}, \ref{fgr:SEC} and
+\ref{fgr:curves}, respectively).
 The online analysis results of the sample changer data indicate concentration effects
-as the radius of gyration decreases with the  sample concentration (see table~\ref{tbl:results}).
-To eliminate potential undesired oligomers (e.g. aggregates), we additionally performed a SEC-SAXS run.
-The total scattering chromatogram provided nearly instantaneously via BsxCuBe displays a strong main
-peak with extended tails both sides (see figure \ref{fgr:SEC}).
-After the completion of the run, the complete analysis results can be examined via
-ISPyBB.
+as the $R_G$ decreases versus the  sample concentration (see
+table~\ref{tbl:results}).
+To eliminate potential undesired oligomers (e.g. aggregates), a SEC-SAXS run
+was additionally performed.
+The total scattering chromatogram generated nearly instantaneously via
+BsxCuBe displayed a strong main peak with extended tails on both sides (see
+figure \ref{fgr:SEC}).
+After the completion of the run, the complete analysis results could be
+examined via ISPyBB.
 The forward scattering intensity shows the same peak as the total scattering intensity.
-In the early frames of the peaks both the radius of gyration and the mass estimate get systematically
-smaller with higher frame number, indicating a larger component.
-Both stabilize with higher frame numbers and stay stable until the end.
-The auto-processing chose the region underlined blue in figure  \ref{fgr:SEC}
-for merging the data.
-For further manual processing and modelling of the protein, we chose the smaller
-striped region.
-Direct comparison of the two merged curves that they only differ in the noise level
-(see figure \ref{fgr:curves}).
-Comparison of the radius of gyration of the SEC-SAXS data with the data acquired with the sample
-changer shows a consistently lower radius of gyration (see table \ref{tbl:results}), and direct
-comparison of the curves shows a slightly higher signal at low angles for sample changer data,
-indicating aggregates.
+The radius of gyration and the mass estimate get systematically
+smaller with higher frame numbers, suggesting a larger size component.
+Both stabilize with longer elution time (higher frame numbers) and keep 
+constant until the end of the peak.
+When merging the data, the auto-processing suggested the region highlighted
+blue in figure \ref{fgr:SEC}.
+For further manual processing and modelling of the protein, the smaller
+hashed region was chosen.
+Direct comparison of the two merged curves that differ only at the noise
+level (figure \ref{fgr:curves}).
+By comparing the radius of gyration from the SEC-SAXS data with the data
+acquired using the sample changer, a consistently lower $R_G$ is stated (see
+table \ref{tbl:results}), whilst a direct comparison of the curves shows a
+slightly higher signal at low angles for sample changer data, indicating
+the presence of aggregates.
 
 %In our example, the auto-processing helped us to optimize our experiment on the fly.
 
 \section{Conclusions and Outlook}
-As illustrated by our example, auto processing has become an invaluable tool for
-experiments at the \textit{bioSaxs} beamline BM29, enabling optimization of the
+As illustrated by the example in the preceding section, auto-processing has
+become an invaluable tool for experiments at the \textit{bioSaxs} beamline BM29, 
+enabling optimization of the
 data acquisition parameters to obtain the best data, avoiding the effects of
 radiation damage on the data, measuring additional dilutions where inter-particle 
-scattering is observed or switching to online SEC where necessary, \ldots 
-Additionally where data quality is good the feedback allows efficient use of
-beamtime avoiding additional unnecessary measurements and giving users confidence 
-to move to the next highest priority samples.
-The combination of the auto processing results being available and their presentation 
-in a user friendly manner in ISPyB facilitates experiments for both experienced users 
-by enabling them to spend more time preparing samples and acquiring data 
-(instead of data processing), and for newcomers to the beamline and technique 
-to whom  the software tools and their use might be unfamiliar. 
-Auto processing gives the users real time feedback on data quality and the progress 
-of the experiment enabling them to spend more time thinking about their science and 
-how to do the best experiment.
-Additionally the automation of data processing along with data acquisition, an
-efficient experiment and thorough experiment can be confidently carried out by an individual.
+scattering is observed or switching to online SEC where necessary. 
+Additionally, where data quality is good enough the auto-processing feedback
+allows efficient use of beamtime avoiding additional unnecessary measurements
+and giving users the needed confidence to move over to the next highest priority
+samples.
+The combination of auto-processing software tools and
+the presentation of the results in a user-friendly manner in ISPyBB facilitates
+experiments for both experienced and novice users by enabling the former to
+spend time preparing more samples and acquiring more useful data (instead of
+data processing), and the latter to get an easier access to the relevant
+beamline techniques.
+Auto-processing provides real time feedback on data quality and on the progress 
+of the experiment enabling the users to spend more time on scientific insight
+and to plan the best experimental strategy.
+Additionally the automation of data processing going hand in hand with
+data acquisition, increases automatically the efficiency of an experiment
+which may hence be carried out confidently by just one individual.
 
-To enhance further the user experiment, the delay of feed-back to the user
-should be kept minimal, providing systematically a consistent result.
-For now, the weakest point of all processing pipelines is the
-\textit{ab initio} modelling pipeline which may have aborted the
+To further enhance the experiment capabilites, the delay of the feedback to the
+user should be kept minimal, providing systematically consistent results.
+As of today, the weakest point of all processing pipelines is the
+\textit{ab initio} Monte-Carlo modelling which may have abort the
 execution of the \textit{dammin} process (often due to a time-out in
-the EDNA plugin: the sub-process did not quit as requested).
-By re-implementing this Monte-Carlo modelling step in parallel into FreeSAS, it
-could be integrated directly into the EDNA pipeline and maintain the execution
-time within a couple of minutes, providing faster feed-back to the user.
+the EDNA plugin).
+By re-implementing a parallel computation version of this Monte-Carlo modelling
+step in FreeSAS, its direct integration into the
+EDNA pipeline would maintain the execution time within a couple of minutes,
+providing faster feed-back to the user.
 
 %The modularity of the EDNA-plugin based approach facilitates the addition of
 %new tools as well as the re-use of existing plugins for other purposes. For
