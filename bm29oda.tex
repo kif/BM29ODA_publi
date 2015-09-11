@@ -105,12 +105,12 @@ solution (bioSAXS) to resolve their three-dimensional shape is continuously
 growing \cite{Graewert2013,Hura2009,Reyes2014}.
 This has not only resulted in the construction of new dedicated
 synchrotron beamlines, such as BM29 at the ESRF, P12 at the EMBL Hamburg or B21
-at the Diamond Light Source \cite{BM29paper,P12,B21}, but also pushed forward
-new developments in both beamline instrumentation and sample handling.
+at the Diamond Light Source \cite{BM29paper,P12,B21},
+but also pushed forward new developments in both beamline instrumentation and sample handling.
 Examples for this trend are the development of dedicated sample changers
-\cite{SCpaper} or the integration of size exclusion chromatography (SEC) systems
-into existing beamlines to ensure the mono-dispersity of the sample at a given
-time \cite{SECPaper2012,SECP12,SECSWING}.
+\cite{SCpaper, SCchess, SCtainer2009, SCslac} or the integration of size
+exclusion chromatography (SEC) systems into existing beamlines to ensure the mono-dispersity of the sample at a given
+time \cite{SECPaper2012,SECP12,SECSWING,SECbiocat}.
 The \textit{BioSAXS} beamline, BM29, is a small-angle
 X-ray scattering beamline dedicated to structural biology \cite{BM29paper}.
 Currently, BM29 provides two main experimental modes: 
@@ -127,7 +127,7 @@ throughput of the beamline.
 Available processing tools for SAXS data which support online processing of
 large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
 \cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and
-\textit{SASFLOW} \cite{X33P,P12},  \textit{XRDUA} \cite{xrdua}, \ldots
+\textit{SASFLOW} \cite{X33P,P12},  \textit{XRDUA} \cite{xrdua}. 
 Most of these either require some advanced input from users or are not open source.
 An alternative to these dedicated SAXS tools are more general open source frameworks such as
 \textit{EDNA} which is for example used for macromolecular crystallography at
@@ -296,10 +296,11 @@ All curve comparisons can be performed in parallel on modern multicore
 computers thanks to the EDNA multi-threaded environment.
 Subsequently, the \textit{SmartMerge} plugin averages the individual frames
 of a measurement, monitors the buffer-sample-buffer sequence and
- calls the \textit{autoSub} plugin, which determines the optimal buffer
-(see below) and subtracts it from the sample data, yielding the 
-\textit{subtracted curve} representing only the scattering from the
-macromolecule of interest.
+calls the \textit{autoSub} plugin, which determines the optimal buffer
+(see below) and subtracts it from the sample data (taken at a given
+concentation), yielding the \textit{subtracted curve} representing only the
+scattering from the macromolecule of interest.
+%TODO: ADAM !!!
 If the buffers measured before and after the sample are considered sufficiently
 similar by \textit{datcmp} (used to calculate the p-value $p > 0.01$), the
 optimal buffer is their average.
@@ -311,9 +312,9 @@ If \textit{autorg} fails for both subtracted curves, the buffer with the lowest
 total scattering is chosen.
 Figure~\ref{fgr:autosub} provides a flow chart of the plugin.
 
-Finally the \textit{subtracted curve} is analysed using the
-\textit{SaxsAnalysis} plugin which subsequently applies tools from the
-\textsc{atsas} package: the Guinier region fitting using \textit{autorg}, 
+Finally the \textit{subtracted curve}, obtained from a single sample
+concentration, is analysed using the \textit{SaxsAnalysis} plugin which
+subsequently applies tools from the \textsc{atsas} package: the Guinier region fitting using \textit{autorg}, 
 the inverse Fourier transform using \textit{datgnom}, 
 $p(r)$ and Porod volume assessment using \textit{datprorod}.
 In addition the \textit{SaxsAnalysis} plugin creates \textit{PNG} figures of
@@ -370,7 +371,7 @@ and \textit{damfilt} to get the average solution.
 The \textit{damaver} model is also filtered using \textit{damstart} to flag
 core and shell dummy atoms before performing the refinement of the model using
 \textit{dammin} \cite{dammin}.
-This last step is pretty slow an lasts usually dozens of minutes. 
+This last step is pretty slow and lasts usually dozens of minutes. 
 If it lasts longer then half an hour, we assume that \textit{dammin} will not finish and 
 EDNA aborts the process in order to free resources. 
 All results are uploaded into the ISPyBB database, where they can also be
@@ -386,7 +387,7 @@ For example, constituents of a complex present in excess or proteins
 might aggregate.
 One approach to address this issue is to purify the sample directly online by collecting data
 on the eluent from a size-exclusion chromatography column (SEC-SAXS or HPLC
-mode) \cite{SECPaper2012,SECP12,SECSWING}.
+mode) \cite{SECPaper2012,SECP12,SECSWING,}.
 At the BM29 beamline, one continuously collects 2D-diffraction frames
 throughout the SEC purification process at a rate of 0.5 to 5 Hz
 (depending on the synchrotron filling mode and the duration of the SEC
