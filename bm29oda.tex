@@ -126,8 +126,8 @@ throughput of the beamline.
 
 Available processing tools for SAXS data which support online processing of
 large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
-\cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities} and
-\textit{SASFLOW} \cite{X33P,P12},  \textit{XRDUA} \cite{xrdua}. 
+\cite{BioXTASraw}, \textit{SAXSutilities} \cite{SAXSUtilities},
+\textit{SASFLOW} \cite{X33P,P12} and \textit{XRDUA} \cite{xrdua}. 
 Most of these either require some advanced input from users or are not open source.
 An alternative to these dedicated SAXS tools are more general open source frameworks such as
 \textit{EDNA} which is for example used for macromolecular crystallography at
@@ -139,7 +139,9 @@ The additional needs for flexibility and minimization of
 direct user interaction led us to develop pipelines for both SC and HPLC mode
 via EDNA.
 These pipelines use pyFAI for azimuthal integration \cite{pyFAI} and tools
-from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modelling.
+from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modelling
+(expecially \textem{datcmp, autorg, datgnom, dammif, damaver, damstart} and
+\textem{dammin}.
 Some parts of the \textsc{atsas} package have been re-implemented as a Python
 library (named FreeSAS \cite{freesas}) for a better integration into the
 Python-based pipeline.
@@ -220,15 +222,18 @@ Two computers with GP-GPU computing capabilities (Nvidia Quadro 4000) are
 dedicated to online data analysis on BM29. 
 They are independent and feature the same software installation.
 As the \textit{ab initio} reconstruction pipeline lasts dozens of minutes
-(due to the final refinement stage using \textit{dammin}), this runs on the
-more powerful computer, whereas the azimuthal integration pipeline, which needs
-the lowest latency, runs on the smaller computer.
+(due to the final refinement stage using \textit{dammin}, \cite{dammin}), this
+runs on the more powerful computer, whereas the azimuthal integration pipeline
+and the background subtraction, which need the lowest latency, run on the
+smaller computer.
 A third computer with similar computing capabilities is available for
 \textit{off-line} reprocessing, development of pipelines and acts as a spare.
-All three computers are equipped with the Debian 7 operating system and are
-used to run \textsc{atsas} (version 2.6.1).
-
-
+This reprocessing needs only Python and \textsc{atsas} without further
+integration into the beamline: neither Tango nor ISPyBB or BsxCube are needed
+and could be deployed on any Unix computer with Python 2.7 and a
+compatible version of \textsc{atsas} installed (i.e. MacOSX). 
+All three computers are equipped with the Debian 7 operating
+system and are used to run \textsc{atsas} (version 2.6.1).
 
 \section{Data analysis pipeline in sample changer mode}
 
