@@ -275,7 +275,9 @@ pipeline has been optimised and simplified to a large extent.
 It relies on the FabIO \cite{fabio} package for image reading and pyFAI
 \cite{pyFAI} for azimuthal integration.
 As the images are acquired with a Pilatus 1M pixel detector (manufactured by
-Dectris), the error can be assumed to be Poissonian and is integrated as such.
+Dectris), for which the error can be assumed to be Poissonian
+(i.e. the variance is equal to the raw intensity for every pixel), this error is
+then propagated during azimuthal integration.
 The azimuthal integration is performed on a dedicated graphics card
 (Nvidia Quadro 4000) using OpenCL \cite{pyFAI_gpu}, offloading this processing
 from CPU to GPU, hence freeing resources for the downstream processing pipelines.
