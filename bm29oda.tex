@@ -90,7 +90,7 @@ High throughput small-angle X-ray scattering on proteins in solution at
 synchrotron sources is a commonly used technique in structural biology which
 relies on highly automated data acquisition.
 Data reduction and primary analysis for bioSAXS experiments consists of a
-well-defined series of individual tasks the automation of which allows a first
+well-defined series of individual tasks, the automation of which allows a first
 easy assessment of the quality of collected data and the adjustment of
 collection strategies if necessary. 
 This article describes both the logic and the technical implementation of the
@@ -108,7 +108,7 @@ synchrotron beamlines, such as BM29 at the ESRF, P12 at the EMBL Hamburg or B21
 at the Diamond Light Source \cite{BM29paper,P12,B21},
 but also pushed forward new developments in both beamline instrumentation and sample handling.
 Examples for this trend are the development of dedicated sample changers
-\cite{SCpaper, SCchess, SCtainer2009, SCslac} or the integration of size
+\cite{SCpaper,SCchess,SCtainer2009,SCslac} or the integration of size
 exclusion chromatography (SEC) systems into existing beamlines to ensure the mono-dispersity of the sample at a given
 time \cite{SECPaper2012,SECP12,SECSWING,SECbiocat}.
 The \textit{BioSAXS} beamline, BM29, is a small-angle
@@ -116,7 +116,7 @@ X-ray scattering beamline dedicated to structural biology \cite{BM29paper}.
 Currently, BM29 provides two main experimental modes: 
 the use of the
 bioSAXS sample changer to collect data on alternating buffer-sample-buffer
-sequences (SC mode) and an online HPLC system \cite{SECPaper2012} for
+sequences (SC mode) and an online HPLC system for
 SEC-SAXS experiments (HPLC mode).
 In both SC and HPLC mode, data are typically collected at a rate of one frame per second
 (1 fps).
@@ -140,10 +140,10 @@ direct user interaction led us to develop pipelines for both SC and HPLC mode
 via EDNA.
 These pipelines use pyFAI for azimuthal integration \cite{pyFAI} and tools
 from the \textsc{atsas} package \cite{ATSAS1,ATSAS2} for analysis and modelling
-(expecially \textem{datcmp, autorg, datgnom, dammif, damaver, damstart} and
-\textem{dammin}.
+(expecially \textit{datcmp, autorg, datgnom, dammif, damaver, damstart} and
+\textit{dammin}).
 Some parts of the \textsc{atsas} package have been re-implemented as a Python
-library (named FreeSAS \cite{freesas}) for a better integration into the
+library, named FreeSAS \cite{freesas}, for a better integration into the
 Python-based pipeline.
 The whole data analysis is smoothly integrated with the beamline control system
 (BsxCuBe) and the ISPyBB \cite{ISPYBB} database.
@@ -154,7 +154,8 @@ where the acquisition of a sample lasts a few seconds and with no dead time
 between samples.
 Therefore the processing speed must at least keep up with the data acquisition
 rate, i.e 1 fps frame per second and about 3 minutes for a set of background and
-sample measurements in SC mode (3 sets of measurements of 10 frames each).
+sample measurements in SC mode (3 sets of measurements of 10 frames each,
+including the time needed for cleaning the setup).
 
 
 \subsection{Experiment control}
@@ -162,7 +163,7 @@ Data acquisition at the BM29 beamline is controlled via the BsxCuBe
 graphical interface, written in Python/Qt4 \cite{pyqt}.
 BsxCuBe is composed of control objects which communicate with other beamline
 components (i.e. detector, motors, sample changer, data analysis server\ldots)
-via the Tango protocol\cite{tango}.
+via the Tango protocol \cite{tango}.
 
 %\subsection{Data analysis server}
 
@@ -174,9 +175,9 @@ via the Tango protocol\cite{tango}.
 \subsection{EDNA}
 EDNA \cite{EDNA} is a plugin-based framework to build pipelines for data-analysis.
 Every EDNA-plugin is either responsible
-for the execution of a task, i.e. managing an external process,
-(called \textit{execution plugins}) or in charge of launching and managing other plugins, either sequentially or in
-parallel (called \textit{control plugins}).
+for the execution of a task, i.e. managing an external process
+(called \textit{execution plugins}), or in charge of launching and managing
+other plugins, either sequentially or in parallel (called \textit{control plugins}).
 The number of execution plugins running simultaneously is limited by the
 processor resources of the computer used (and the Python global interpreter
 lock).
@@ -257,7 +258,8 @@ The following steps for data reduction and analysis are required:
 and normalisation with the sample concentration),
 \item basic analysis of the sample scattering curve (Guinier plots, and other
 SAXS invariants such as the Porod volume)
-\item \textit{ab initio} modelling based on basic analysis.
+\item \textit{ab initio} modelling based on basic analysis, assuming an unique
+macromolecule conformation.
 \end{enumerate}
 In the EDNA bioSAXS application (2) and (3) are combined in one pipeline.
 
@@ -297,7 +299,7 @@ Each sample or background measurement consists of a set of frames
 (avoiding the interpretation of data from damaged samples).
 The \textit{SmartMerge} pipeline is triggered at the end of each measurement
 and is designed to evaluate similarities among scattering
-patterns, using the CORMAP test \cite{CORMAP} of the \textit{datcmp} tool from \textsc{atsas} and merging all
+patterns, using the \textsc{cormap} test \cite{CORMAP} of the \textit{datcmp} tool from \textsc{atsas} and merging all
 similar frames and  propagating the associated metadata and
 errors.
 A flow diagram is depicted in figure~\ref{fgr:smart}.
@@ -311,12 +313,12 @@ concentation), yielding the \textit{subtracted curve} representing only the
 scattering from the macromolecule of interest.
 
 If the buffers measured before and after the sample are considered sufficiently
-similar by the CORMAP test (\textit{datcmp}) (used to calculate the p-value $p > 0.01$), the
+similar by the \textsc{cormap} test (\textit{datcmp}) (used to calculate the p-value $p > 0.01$), the
 optimal buffer is their average.
 If they differ too much ($p \leq 0.01$), each of them is subtracted individually from the
 sample curve and the difference resulting in  the bigger radius of
-gyration ($R_{G}$), as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
-If both values of $R_{G}$ are identical, the selection is made using the lowest forward scattering intensity $I_{0}$.
+gyration ($R_g$), as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
+If both values of $R_g$ are identical, the selection is made using the lowest forward scattering intensity $I_{0}$.
 If \textit{autorg} fails for both subtracted curves, the buffer with the lowest
 total scattering is chosen.
 Figure~\ref{fgr:autosub} provides a flow chart of the plugin.
@@ -338,7 +340,8 @@ Figure~\ref{fgr:analysis} shows a flowchart of the plugin.
 \subsection{Ab initio reconstruction pipeline}
 \label{abinitio}
 Following the analysis pipeline, a three-dimensional dummy atom model based
-on the \textit{subtracted curve} is reconstructed.
+on the \textit{subtracted curve} is reconstructed, assuming only one
+conformation is present in solution.
 This pipeline is inspired from a preliminary work
 performed at the Diamond Light Source \cite{DiamondSE}.
 It runs multiple instances of \textit{dammif} in fast mode in parallel (8 or 16 by default)
@@ -396,7 +399,7 @@ For example, constituents of a complex present in excess or proteins
 might aggregate.
 One approach to address this issue is to purify the sample directly online by collecting data
 on the eluent from a size-exclusion chromatography column (SEC-SAXS or HPLC
-mode) \cite{SECPaper2012,SECP12,SECSWING,}.
+mode) \cite{SECPaper2012,SECP12,SECSWING}.
 At the BM29 beamline, one continuously collects 2D-diffraction frames
 throughout the SEC purification process at a rate of 0.5 to 5 Hz
 (depending on the synchrotron filling mode and the duration of the SEC
@@ -428,13 +431,13 @@ The first time a frame in a HPLC run is not classified as buffer, all previous
 frames are averaged to yield an ``average buffer''.
 For any frame classified as sample, the ``average buffer'' is subtracted, Guinier
 analysis is performed (with \textit{autorg} from the \textsc{atsas} package),
-delivering a radius of gyration $R_G$ and the forward scattering intensity
+delivering a radius of gyration $R_g$ and the forward scattering intensity
 $I_0$, which is proportional to the molecular mass and the sample concentration. 
 The correlated volume is also calculated in order to estimate the
 sample mass \cite{RamboTainerNature2013}.
 In addition, the total scattering intensity of any
 frame is calculated, regardless of the current classification.
-These operation occur at about 2 Hz on the current hardware, but often the
+These operation occur at about 4 Hz on the current hardware, but often the
 acquisition speed is 1 fps, so that the image can be integrated and displayed
 almost in real time.
 
@@ -446,7 +449,7 @@ one SEC-SAXS run.
 This plugin uses the results of \textit{autorg} to locate peaks using
 continuous wave transformation, as implemented in SciPy, on the forward
 scattering \cite{cwt,scipy}, and then merges all individual curves around a local maxima
-of the forward scattering with radii of gyrations ($R_G$) within one sigma of the peak value.
+of the forward scattering with radii of gyrations ($R_g$) within one sigma of the peak value.
 All processing results from the \textit{HPLC single frame pipeline} and the results of
 the peak finding are saved into a single HDF5 file which is uploaded into the
 ISPyBB database at the end of the data processing flow.
@@ -456,7 +459,7 @@ number (or time).
 Figure \ref{fgr:SEC} shows the result of a HPLC
 experiment where one main peak and a trailing shoulder are identified.
 All merged files are further analysed by the \textit{SAXS analysis}
-(\ref{SM}) and the \textit{ab initio reconstruction pipeline}
+(\ref{SM}) and the \textit{ab initio} reconstruction pipeline
 (\ref{abinitio}) plugins described in the sample changer section.
 
 \section{Offline data analysis}
@@ -470,7 +473,7 @@ For the HPLC mode and the curve merging task, specific tools to reprocess (if
 needed) complete datasets are available.
 
 The drawback of this approach is that it relies on the EDNA infrastructure, which is
-non trivial to install and even more difficult to customize 
+non trivial to install and needs customization 
 (\textsc{atsas} executable path and related licensing issues, number of cores,
 GPU configuration, timeouts for any part of the pipelines, \ldots).
 The availability of a spare computer on the beamline dedicated to offline
@@ -484,7 +487,7 @@ were acquired both as a dilution series using the sample changer and
 using SEC-SAXS (see figures \ref{fgr:SCcurves}, \ref{fgr:SEC} and
 \ref{fgr:curves}, respectively).
 The online analysis results of the sample changer data indicate concentration effects
-as the $R_G$ decreases versus the  sample concentration (see
+as the $R_g$ decreases versus the  sample concentration (see
 table~\ref{tbl:results}).
 To eliminate potential undesired oligomers (e.g. aggregates), a SEC-SAXS run
 was additionally performed.
@@ -506,7 +509,7 @@ Direct comparison of the two merged curves that differ only at the noise
 level, as average sample concentration in the region used for manual 
 merging is higher (figure \ref{fgr:curves}).
 By comparing the radius of gyration from the SEC-SAXS data with the data
-acquired using the sample changer, a consistently lower $R_G$ is stated (see
+acquired using the sample changer, a consistently lower $R_g$ is stated (see
 table \ref{tbl:results}), whilst a direct comparison of the curves shows a
 slightly higher signal at low angles for sample changer data, indicating
 the presence of aggregates.
@@ -613,12 +616,13 @@ for the bioSAXS part. The source code is now hosted on a public
 repository at:\\
 https://github.com/edna-site.\\
 EDNA is a server tool for online data analysis and the developers are aware of
-how difficult it may be to install and configure it properly. EDNA controls
+the difficulty to install and configure it properly. EDNA controls
 \textsc{atsas} modules by executing external programs in pipe mode, avoiding
 any licensing issues.
 
 The azimuthal integration is performed via pyFAI \cite{pyFAI}, the Python library
-for fast azimuthal integration, which is GPU-accelerated \cite{pyFAI_2015}.
+for fast azimuthal integration, which can be GPU-accelerated
+\cite{pyFAI_2015}.
 Diffraction images are read by the FabIO library \cite{fabio}.
 Both libraries are licensed under GPL and hosted under the following web
 pages:\\
@@ -664,7 +668,8 @@ Symbols are those described in figure \ref{fgr:smart}.}
 \caption{Flow chart of the \textit{saxsAnalysis} plugin.
 This plugin applies various preliminary analysis methods to background
 corrected data.
-Symbols are those described in figure \ref{fgr:smart}.}\label{fgr:analysis}
+Symbols are those described in figure \ref{fgr:smart}.}
+\label{fgr:analysis}
 \end{figure}
 
 \begin{figure}
@@ -694,7 +699,7 @@ The bar plot on the right hand-site reproduces the mean NSD.}
 \includegraphics[width=8cm]{model.png}
 \caption{Flow chart of the \textit{ab initio} reconstruction plugin from a
 \textit{gnom} file (pair distance distribution function).
-Symbols are those described in figure \ref{fgr:smart}.}\label{fgr:analysis}
+Symbols are those described in figure \ref{fgr:smart}.}
 \label{fgr:modelling}
 \end{figure}
 
@@ -713,7 +718,7 @@ construct of protein D5 from vaccinia virus, at different concentrations
 \caption{Chromatogram of a SEC-SAXS experiment on the deletion construct of
 protein D5.
 The plot shows total scattering intensity ($\Sigma I$), forward scattering
-($I_0$), radius of gyration ($R_G$) and estimated mass from the
+($I_0$), radius of gyration ($R_g$) and estimated mass from the
 auto-processing as function of the frame number (take at 1 fps).
 The region highlighted in blue was automatically selected for the merging of
 frames, the hashed region was chosen for the manual merging.}
@@ -733,7 +738,7 @@ low-$q$ regime. }
 
 \begin{table}
 \begin{tabular}{ l c | c c c c c c }
-   & $c$  & $I_{0}$  & $R_{G}$ & $D_{max}$ & $V_{P}$ & $V_{c}$ & Mass from $V_{c}$\\
+   & $c$  & $I_{0}$  & $R_g$ & $D_{max}$ & $V_{P}$ & $V_{c}$ & Mass from $V_{c}$\\
 	 &  (mg/ml) & (kDa) & (nm)&  (nm)&  (nm$^{3}$) & (nm$^{2}$) & (kDa)\\
 \hline
 Sample changer & 5.00  & 35.06 & 2.80 & 9.37  & 72.00 & 4.18 & 50.85 \\
