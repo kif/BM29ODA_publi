@@ -112,7 +112,7 @@ Examples for this trend are the development of dedicated sample changers
 exclusion chromatography (SEC) systems into existing beamlines to ensure the mono-dispersity of the sample at a given time \cite{SECPaper2012,SECP12,SECSWING,SECbiocat}.
 The \textit{BioSAXS} beamline, BM29 at the ESRF, is a dedicated, optimised and highly automated beamline for small-angle X-ray scattering from solutions of biological macromolecules for the structural biology community \cite{BM29paper}. 
 In BioSAXS, solutions containing pure (monodisperse) proteins, nucleic acids or complexes thereof are exposed to X-rays and the resulting scatter at small angles is recorded on a 2D pixel detector (Dectris Pilatus 1M).   
-By varying the structural aspects of the function of proteins and other macromolecules can be studied at near physiological conditions.
+By varying the the composition of the solutions, the function of the macromolecules can be studied at near physiological conditions.
 At BM29, the sample environment is a temperature controlled quartz glass flow-through capillary mounted in vacuum.
 Currently, BM29 provides two main experimental modes: the bioSAXS sample changer (SC) \cite{SCpaper} and an online size exclusion chromatography (SEC) using a high-performance liquid chromatography (HPLC) system  for SEC-SAXS experiments. \\
 Using the bioSAXS sample changer (SC) aliquots of solution are moved through the X-ray beam to mitigate radiation damage while SAXS data is acquired. 
@@ -123,7 +123,7 @@ The SC has an automatic cleaning cycle after every measurement (to minimise the 
 The alternating buffer-sample-buffer sequence allows the buffers before and after each sample to be compared to check for the presence of any contamination.\\
 For SEC data collection frames are collected continually from the time the sample is injected onto the column until at least the macromolecule of interest has eluted from the column.
 The time at which macromolecules  elute from the column and thus the total exposure time is dependent of the macromolecule,  column and flow rate used. 
-As even the largest macromolecules due not elute from the SEC column immediately, the scattering from the buffer measured at the beginning of the experiment can be used for background correction.\\
+As even the largest macromolecules due not elute from the SEC column immediately, the scattering from the buffer measured at the beginning of the experiment can therefore be used for background correction.\\
 
 In both SC and SEC mode, data are typically collected at a rate of one frame per second (fps) resulting in a large amount of data for which manual processing is not practical. 
 As it is necessary to estimate the quality of the acquired data to ensure optimal experiments all data processing steps:
@@ -133,7 +133,7 @@ As it is necessary to estimate the quality of the acquired data to ensure optima
 \item analysis of the sample scattering curve 
 \end{enumerate}
 must be executed in a rapid and robust way, compatible with the throughput of a highly automated beamline. 
-At BM29 in SC mode this is currently 3 minutes each for 3 dilutions of sample with matching interspersed background measurements  (10 one second frames each, including both cleaning and loading).
+At BM29 in SC mode this is currently 10 minutes each for a dilution series (3 separate concentrations of sample) with matching interspersed background measurements  (10 one second frames each, including both cleaning and loading).
 
 Available processing tools for SAXS data which support online processing of
 large data sets include \textit{DPDAK} \cite{DPDAK}, \textit{bioXTAS raw}
@@ -156,7 +156,7 @@ The whole data analysis is smoothly integrated with the beamline control system
 (BsxCuBe) and the ISPyBB \cite{ISPYBB} database.\\
 
 The absence of human intervention comes with a price:  the pipeline assumes that the sample has no preferred orientation and the scattering signal is isotropic,  that the sample is a peptide (for correctly estimating the mass), that is is pure, mono-disperse and present in a single conformation and that its  electron density is uniform (required for the modeling pipeline). 
-As all the intrinsic assumptions required cannot be validated without additional information the experimentators ultimately bear the responsibility for the quality of their data and validity of their conclusions. 
+As all the intrinsic assumptions required cannot be validated without additional information the user ultimately bears the responsibility for the quality of their data and validity of their conclusions. 
 While the use of the pipelines greatly increase the possibilities for cross checking and validation during the experiment,  we strongly encourage the use of any and all tools for data processing and validation in line with current best practices \cite{jacques}. 
 
 \section{Technical description}
@@ -203,8 +203,8 @@ The Tango device server is hence completely generic and can be used for any
 type of EDNA jobs.
 
 To achieve maximum responsiveness at the Tango level, EDNA jobs are not started as
-they arrive but they are just instantiated and queued.
-Another thread is responsible for starting them and can start multiple jobs in parallel
+they arrive but are instantiated and queued.
+Another thread is responsible for initiation and can start multiple jobs in parallel
 (data parallelism).
 The number of jobs and the number of actual execution
 plugins running simultaneously is controlled independently to make the best use
@@ -245,7 +245,7 @@ Using the sample changer ensures a high throughput of different samples (
 $\sim 3$~min/sample, including background).
 Before and after measuring a sample, a background measurement using its
 respective buffer is performed. The duplicate buffer measurements are necessary to detect 
-spoling of the sample environment during data acquisition.
+spoiling of the sample environment during data acquisition.
 If the buffer of a sample is the same as the one of the preceding sample, the
 background measurement before the sample is skipped.
 Hence, data are produced in sequences of the type \textit{buffer 1, sample 1,
@@ -311,7 +311,7 @@ Subsequently, the \textit{SmartMerge} plugin averages the individual frames
 of a measurement, monitors the buffer-sample-buffer sequence and
 calls the \textit{autoSub} plugin, which determines the optimal buffer
 (see below) and subtracts it from the sample data (taken at a given
-concentation), yielding the \textit{subtracted curve} representing only the
+concentration), yielding the \textit{subtracted curve} representing only the
 scattering from the macromolecule of interest.
 
 If the buffers measured before and after the sample are considered sufficiently similar by the \textsc{cormap} test (\textit{datcmp}) (p-value $p \geq 0.01$), the optimal buffer used for subtraction is their average. 
@@ -319,9 +319,9 @@ Buffers before and after can differ in cases where the cell becomes dirty due to
 If for any reason the buffers do not match this is reported to the users and manual inspection and selection of the appropriate buffer is required prior to data interpretation. 
 However, to be able to report parameters for the scattering of the sample in order to provide preliminary feedback to the user a subtraction must be done and thus a choice of buffer must be made by the pipeline in order to continue. 
 As contamination of the exposure cell caused by deposition of sample during exposure or scattering from bubbles results in higher scattering of the buffer the resulting subtraction will have a lower $R_{g}$. 
-Thus if the buffer before and after do differ ($p < 0.01$), each of them is subtracted individually from the sample curve  and the curve resulting in  the bigger radius of gyration ($R_g$), as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
-If both values of $R_g$ are identical (differences are outside the Guinier range), or if \textit{autorg} fails for both subtracted curves, the buffer with the lowest total scattering is chosen, indicating this is the buffer scattering free from artifacts. 
-Although contamination by spoiling typically affects the buffer after,  one could naively take the buffer before by default; however the the second scenario of bubble formation is equally likely for both buffers and makes this more complex approach necessary.
+Thus if the buffer before and after do differ ($p < 0.01$), each of them is subtracted individually from the sample curve and the curve resulting in the bigger radius of gyration ($R_g$), as determined by the tool \textit{autorg} from \textsc{atsas}, is retained.
+If both values of $R_g$ are identical (differences are outside the Guinier range), or if \textit{autorg} fails for both subtracted curves, the buffer with the lowest total scattering is chosen, indicating this should be the buffer scattering free from artifacts. 
+As contamination by spoiling typically affects the buffer after, one could naively take the buffer before by default. However, the the second scenario of bubble formation is equally likely for both buffers and makes this more complex approach necessary.
 Figure~\ref{fgr:autosub} provides a flow chart of the plugin.
 
 
@@ -407,9 +407,9 @@ throughout the SEC purification process at a rate of 0.5 to 5 Hz
 (depending on the synchrotron filling mode and the duration of the SEC
 purification, 1 Hz being the standard rate), resulting in up to a few thousands
 frames.
-While the first few frames are acquired on the buffer, the sample composition
-for successive frames is not known \textit{a priori}.
-The result of a SEC-SAXS experiment can be of very difficult interpretation.
+While the first few frames are acquired on the buffer (prior to injection of the sample), the sample composition
+for successive (post injection) frames is not known \textit{a priori}.
+The results of a SEC-SAXS experiment can be very difficult to visualise and interpret.
 Our automatic analysis delivers reduced data and basic analysis for
 every individual frame.
 In addition, it uses this information to try to identify regions in the
@@ -456,7 +456,7 @@ However, not all cases with SEC-SAXS are ideal, if the peaks are not well separa
 The varying $R_{g}$ can be seen directly in the resulting plots \ref{fgr:SEC}, as well as the resultant merged curves will contain very few frames (number of frames used in the merge is provided) thereby alerting users to potential problems with data quality allowing for optimisation of the experiment. 
 Additionally as all merged files are analysed by the \textit{SAXS analysis} (\ref{SM}) and the \textit{ab initio}reconstruction pipeline (\ref{abinitio}) plugins described in the sample changer section, the molecular mass, geometric invariants and ab-initio reconstructions are automatically calculated. 
 The user can easily determine if the resulting peaks match the size expected for their sample. 
-If the automated processing is not sufficient, the user can use the subtracted frames to take appropriate actions, such as  manual selection of a region to merge or use of advanced tools such as US-SOMO \cite{USSOMO} to deconvolute overlapping peaks.
+If the automated processing is not sufficient, the user is provided with all the subtracted frames to take further action as appropriate, such as  manual selection of a region to merge or use of advanced tools such as US-SOMO \cite{USSOMO} to deconvolute overlapping peaks.
 
 \section{Offline data analysis}
 In case offline processing is required, e.g. when one of the parameters for
@@ -515,7 +515,7 @@ the presence of aggregates.
 \section{Conclusions and Outlook}
 As illustrated by the example in the preceding section, auto-processing has
 become an invaluable tool for experiments at the \textit{bioSaxs} beamline BM29, 
-providing the experimentator with the information needed to optimize the
+providing the user with the information needed to optimize the
 data acquisition parameters to obtain the best data, avoiding the effects of
 radiation damage on the data, measuring additional dilutions where inter-particle 
 scattering is observed or switching to online SEC where necessary. 
