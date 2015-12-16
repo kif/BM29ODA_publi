@@ -108,9 +108,10 @@ synchrotron beamlines, such as BM29 at the ESRF, P12 at the EMBL Hamburg or B21
 at the Diamond Light Source \cite{BM29paper,P12,B21},
 but also pushed forward new developments in both beamline instrumentation and sample handling.
 Examples for this trend are the development of dedicated sample changers
-\cite{SCpaper,SCchess,SCtainer2009,SCslac} or the integration of size
+\cite{round2008,SCtainer2009,SCchess,SCslac,SCpaper} or the integration of size
 exclusion chromatography (SEC) systems into existing beamlines to ensure the 
-mono-dispersity of the sample at a given time \cite{SECPaper2012,SECP12,SECSWING,SECbiocat}.
+mono-dispersity of the sample at a given time
+\cite{SECbiocat,SECSWING,SECPaper2012,SECP12}.
 The \textit{BioSAXS} beamline, BM29 at the ESRF, is a dedicated, optimised and 
 highly automated beamline for small-angle X-ray scattering from solutions of 
 biological macromolecules for the structural biology community \cite{BM29paper}. 
@@ -142,7 +143,7 @@ is injected onto the column until at least the macromolecule of interest has
 eluted from the column.
 The time at which macromolecules  elute from the column and thus the total 
 exposure time is dependent of the macromolecule,  column and flow rate used. 
-As even the largest macromolecules due not elute from the SEC column immediately, 
+As even the largest macromolecules do not elute from the SEC column immediately, 
 the scattering from the buffer measured at the beginning of the experiment can 
 therefore be used for background correction.
 
@@ -353,7 +354,7 @@ and is designed to evaluate similarities among scattering
 patterns, using the \textsc{cormap} test \cite{CORMAP} of the \textit{datcmp} tool from \textsc{atsas} and merging all
 similar frames (\textit{p-value} $p \geq 0.01$) and  propagating the associated
 metadata and errors.
-A flow diagram is depicted in figure~\ref{fgr:smart}.
+A flow diagram is depicted in Figure~\ref{fgr:smart}.
 All curve comparisons can be performed in parallel on modern multicore
 computers thanks to the EDNA multi-threaded environment.
 Subsequently, the \textit{SmartMerge} plugin averages the individual frames
@@ -573,7 +574,7 @@ acquisitions.
 To illustrate the functionality of the processing pipeline, data from
 a ``deletion construct'' of the protein D5 from  Vaccinia virus (VACV)
 were acquired both as a dilution series using the sample changer and
-using SEC-SAXS (see figures \ref{fgr:SCcurves}, \ref{fgr:SEC} and
+using SEC-SAXS (see Figures \ref{fgr:SCcurves} and
 \ref{fgr:curves}, respectively).
 The online analysis results of the sample changer data indicate concentration effects
 as the $R_g$ decreases versus the  sample concentration (see
@@ -582,7 +583,7 @@ To eliminate potential undesired oligomers (e.g. aggregates), a SEC-SAXS run
 was additionally performed.
 The total scattering chromatogram generated nearly instantaneously via
 BsxCuBe displayed a strong main peak with extended tails on both sides (see
-figure \ref{fgr:SEC}).
+Figure~\ref{fgr:SEC}).
 After the completion of the run, the complete analysis results could be
 examined via ISPyBB.
 The forward scattering intensity shows the same peak as the total scattering intensity.
@@ -591,12 +592,12 @@ smaller with higher frame numbers, suggesting a larger size component.
 Both stabilize with longer elution time (higher frame numbers) and keep 
 constant until the end of the peak.
 When merging the data, the auto-processing suggested the region highlighted
-blue in figure \ref{fgr:SEC}.
+blue in Figure~\ref{fgr:SEC}.
 For further manual processing and modelling of the protein, the smaller
 hashed region was chosen.
 Direct comparison of the two merged curves that differ only at the noise
 level, as average sample concentration in the region used for manual 
-merging is higher (figure \ref{fgr:curves}).
+merging is higher (Figure~\ref{fgr:curves}).
 By comparing the radius of gyration from the SEC-SAXS data with the data
 acquired using the sample changer, a consistently lower $R_g$ is stated (see
 table \ref{tbl:results}), whilst a direct comparison of the curves shows a
@@ -747,18 +748,8 @@ output, black diamonds decision steps, green rectangles processing using
 buffer.
 This plugin subtracts the background from the total scattering signal after
 selecting the most suitable buffer.
-Symbols are those described in figure \ref{fgr:smart}.}
+Symbols are those described in Figure~\ref{fgr:smart}.}
 \label{fgr:autosub}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=8cm]{analysis.png}%
-\caption{Flow chart of the \textit{saxsAnalysis} plugin.
-This plugin applies various preliminary analysis methods to background
-corrected data.
-Symbols are those described in figure \ref{fgr:smart}.}
-\label{fgr:analysis}
 \end{figure}
 
 \begin{figure}
@@ -772,6 +763,16 @@ Error-bars are represented in light colors.
 The layout results from an adjustment of the standard version for
 improved readability of the printouts.}
 \label{plots}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=8cm]{analysis.png}%
+\caption{Flow chart of the \textit{saxsAnalysis} plugin.
+This plugin applies various preliminary analysis methods to background
+corrected data.
+Symbols are those described in Figure~\ref{fgr:smart}.}
+\label{fgr:analysis}
 \end{figure}
 
 \begin{figure}
@@ -790,17 +791,8 @@ The bar plot on the right hand-site reproduces the mean NSD.}
 \includegraphics[width=8cm]{model.png}
 \caption{Flow chart of the \textit{ab initio} reconstruction plugin from a
 \textit{gnom} file (pair distance distribution function).
-Symbols are those described in figure \ref{fgr:smart}.}
+Symbols are those described in Figure~\ref{fgr:smart}.}
 \label{fgr:modelling}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=8cm]{SCcurves.png}
-\caption{Comparison of auto-subtracted SAXS patterns, of the deletion
-construct of protein D5 from vaccinia virus, at different concentrations
-(collected in SC mode).}
-\label{fgr:SCcurves}
 \end{figure}
 
 \begin{figure}
@@ -814,6 +806,15 @@ auto-processing as function of the frame number (take at 1 fps).
 The region highlighted in blue was automatically selected for the merging of
 frames, the hashed region was chosen for the manual merging.}
 \label{fgr:SEC}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=8cm]{SCcurves.png}
+\caption{Comparison of auto-subtracted SAXS patterns, of the deletion
+construct of protein D5 from vaccinia virus, at different concentrations
+(collected in SC mode).}
+\label{fgr:SCcurves}
 \end{figure}
 
 \begin{figure}
